@@ -1,1 +1,73 @@
-GET http://localhost:5000/
+### Get Event
+GET http://localhost:5000/2023/event/2022code
+Accept: application/json
+###
+### Get Event
+PATCH http://localhost:5000/2023/event/2022code/updateMatches
+Accept: application/json
+###
+
+
+### Get Events
+GET http://localhost:5000/2023/events
+Accept: application/json
+###
+
+### Post Event
+POST http://localhost:5000/2023/event
+Content-Type: application/json
+
+{
+  "_id": "2022code"
+}
+
+### Post Match
+POST http://localhost:5000/2023/event/2023utwv/match/2016nytr_qm1/team/frc371
+Content-Type: application/json
+
+{
+  "_id": "frc371",
+  "auto": {
+    "startingPosition": {
+      "x": 2.22321,
+      "y": 1.3921
+    },
+    "mobility": true,
+    "chargingStation": "DEFAULT",
+    "path": [
+      {
+        "Object": "CONE",
+        "Action": "PLACE",
+        "placeHeight": "MIDDLE",
+        "col": 2
+      },
+      {
+        "Object": "CONE",
+        "Action": "PICK",
+        "position": 0
+      },
+      {
+        "Object": "CONE",
+        "Action": "PLACE",
+        "placeHeight": "TOP",
+        "col": 2
+      }
+    ]
+  },
+  "cycles": [
+    {
+      "object": "CONE",
+      "pickupLocation": "DOUBLE_SUBSTATION_CHUTE",
+      "placeHeight": "MIDDLE",
+      "Time": 10
+    },
+    {
+      "object": "CUBE",
+      "pickupLocation": "GROUND",
+      "placeHeight": "TOP",
+      "Time": 7
+    }
+  ],
+  "endGame": "DOCKED"
+}
+
