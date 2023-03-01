@@ -10,12 +10,17 @@ dotenv.config()
 //middleware
 const app = express();
 
+// app.use(cors({
+//     credentials: true,
+//     origin: 'http://localhost:3000',
+//     optionsSuccessStatus: 200,
+// }))
+
 app.use(cors({
-    credentials: true,
-    origin: 'http://localhost:3000',
-    optionsSuccessStatus: 200
-}))
-app.use(express.json())
+    optionsSuccessStatus: 200,
+}));
+
+app.use(express.json());
 
 app.use("/2023", authRoute);
 
