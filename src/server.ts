@@ -1,11 +1,11 @@
 import dotenv from "dotenv-flow"
-dotenv.config()
-
 import createError from "http-errors"
 import express, { Request, Response, NextFunction } from "express"
 import mongoose from "mongoose";
 import authRoute from "./routes/comp.route";
 import cors from "cors"
+dotenv.config()
+
 
 //middleware
 const app = express();
@@ -43,5 +43,5 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 })
 
-const port = process.env.PORT || 5000; // process.env.port is Heroku's port
+const port = process.env.PORT || 3001; // process.env.port is Heroku's port
 app.listen(port, () => console.log(`Server up and running on port ${port}`))

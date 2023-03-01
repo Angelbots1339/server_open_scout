@@ -7,62 +7,67 @@ const pitScout = new mongoose.Schema({
     flagged: Boolean,
     images: [String]
 });
-const fieldPos = new mongoose.Schema({
+const autoStartPos = new mongoose.Schema({
     x: Number,
     y: Number
 });
-const autoPoint = new mongoose.Schema({
-    object: {
-        type: String,
-        enum: ["CONE", "CUBE"]
-    }
-    }, {discriminatorKey: "action"}
+const autoPath = new mongoose.Schema({
+        type: {
+            type: String,
+            enum: ["cube", "cone", "pickup"]
+        },
+        id: Number,
+        height: {
+            type: String,
+            enum: ["top", "mid", "hybrid", "fail"],
+            required: false,
+        }
+    },
+    {discriminatorKey: "action"}
 );
 const autoScout = new Schema({
-    startingPosition: fieldPos,
+    startingPosition: autoStartPos,
     mobility: Boolean,
-    path: [autoPoint],
-    chargingStation: {
-        type: String,
-        enum: ["PARKED", "DOCKED", "DEFUALT"],
-        default: "DEFAULT"
+    path: [autoPath],
+    onChargingStation: {
+        type: Boolean
     }
 });
-// @ts-ignore
-autoScout.path("path").discriminator("PICK", new Schema({
-    position: {
-        type: Number,
-        min: 0,
-        max: 5
-    }
-}));
-//@ts-ignore
-autoScout.path("path").discriminator("PLACE", new Schema({
-    placeHeight: {
-        type: String,
-        enum: ["HYBRID", "MIDDLE", "TOP"]
-    },
-    col: {
-        type: Number,
-        min: 0,
-        max: 8,
-    }
-}));
+// // @ts-ignore
+// autoScout.path("path").discriminator("PICK", new Schema({
+//     position: {
+//         type: Number,
+//         min: 0,
+//         max: 5
+//     }
+// }));
+// //@ts-ignore
+// autoScout.path("path").discriminator("PLACE", new Schema({
+//     placeHeight: {
+//         type: String,
+//         enum: ["HYBRID", "MIDDLE", "TOP"]
+//     },
+//     col: {
+//         type: Number,
+//         min: 0,
+//         max: 8,
+//     }
+// }));
 
 const cycleScout = new mongoose.Schema({
     object: {
         type: String,
         enum: ["CONE", "CUBE"]
     },
-    pickupLocation: {
+    pickup: {
         type: String,
-        enum: ["GROUND", "SINGLE_SUBSTATION", "DOUBLE_SUBSTATION_TRAY", "DOUBLE_SUBSTATION_CHUTE"]
+        enum: ["ground", "shelf", "tipped"]
     },
-    placeHeight: {
+    placement: {
         type: String,
-        enum: ["HYBRID", "MIDDLE", "TOP"]
+        enum: ["top", "mid", "hybrid", "fail"]
     },
-    Time: Number,
+    // Time: Number,
 });
 const teamMatchScout = new mongoose.Schema({
     _id: {
@@ -70,10 +75,8 @@ const teamMatchScout = new mongoose.Schema({
     },
     auto: autoScout,
     cycles: [cycleScout],
-    endGame: {
-        type: String,
-        enum: ["PARKED", "DOCKED", "DEFUALT"],
-        default: "DEFAULT"
+    chargeStation: {
+        type: Boolean,
     }
 
 });

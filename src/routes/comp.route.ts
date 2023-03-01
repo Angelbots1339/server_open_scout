@@ -10,12 +10,31 @@ router.route("/events").get(async (req, res, next) => {
     Competition2023.find().then((data) => {res.send(data)}).catch(next);
 });
 router.route("/event/:event").get((req, res, next) => {
-        Promise.all([Competition2023.findById(req.params.event), getFromTBA("event/" + req.params.event)]).then(([event, tbaEvent]) => {
+        Promise.all([Competition2023.findById(req.params['event']), getFromTBA("event/" + req.params['event'])]).then(([event, tbaEvent]) => {
             // @ts-ignore
             res.send({...event?.toObject(), ...tbaEvent});
-        }).catch(next)
+        }).catch(next);
+
     }
 );
+router.route("/event/:event/teams").get((req, res, next) => {
+        Promise.all([getFromTBA("event/" + req.params['event'] + "/teams")]).then(([ tbaEventTeams]) => {
+            // @ts-ignore
+            res.send({...tbaEventTeams});
+        }).catch(next);
+
+    }
+);
+
+router.route("/event/:event/matches/keys").get((req, res, next) => {
+        Promise.all([getFromTBA("event/" + req.params['event'] + "/matches/keys")]).then(([ tbaEventTeams]) => {
+            // @ts-ignore
+            res.send({...tbaEventTeams});
+        }).catch(next);
+
+    }
+);
+
 router.route("/event/:event/matches/simple").get((req, res, next) => {
     getFromTBA("event/" + req.params.event + "/matches/simple").then((matches) => {
         res.send(matches);
@@ -26,10 +45,10 @@ router.route("/event/:event/updateMatches").patch((req, res, next) => {
     getFromTBA("event/" + req.params.event + "/matches/keys").then((event) => {
         event.map((key: any) => ({_id: key}))
         console.log(event)
-        // Competition2023.updateOne({_id: req.params.event}, {matchScout: event}).then(() => {
-        //     res.send("Updated")
-        // }).catch(next)
-    }).catch(next)
+        Competition2023.updateOne({_id: req.params.event}, {matchScout: event}).then(() => {
+            res.send("Updated");
+        }).catch(next);
+    }).catch(next);
 });
 
 
@@ -43,8 +62,6 @@ router.route("/event").post((req, res, next) => {
         })
         .catch(next)
 });
-
-
 
 router.route("/event/:event/match/:match/team/:team").post( async (req, res, next) => {
     const result = await Competition2023.updateOne(
