@@ -5,9 +5,10 @@ import Competition2023 from "../models/Competition2023.model";
 const router = express.Router();
 
 
-
 router.route("/events").get(async (req, res, next) => {
-    Competition2023.find().then((data) => {res.send(data)}).catch(next);
+    Competition2023.find().then((data) => {
+        res.send(data)
+    }).catch(next);
 });
 router.route("/event/:event").get((req, res, next) => {
         Promise.all([Competition2023.findById(req.params['event']), getFromTBA("event/" + req.params['event'])]).then(([event, tbaEvent]) => {
@@ -18,7 +19,7 @@ router.route("/event/:event").get((req, res, next) => {
     }
 );
 router.route("/event/:event/teams").get((req, res, next) => {
-        Promise.all([getFromTBA("event/" + req.params['event'] + "/teams")]).then(([ tbaEventTeams]) => {
+        Promise.all([getFromTBA("event/" + req.params['event'] + "/teams")]).then(([tbaEventTeams]) => {
             // @ts-ignore
             res.send({...tbaEventTeams});
         }).catch(next);
@@ -27,7 +28,7 @@ router.route("/event/:event/teams").get((req, res, next) => {
 );
 
 router.route("/event/:event/matches/keys").get((req, res, next) => {
-        Promise.all([getFromTBA("event/" + req.params['event'] + "/matches/keys")]).then(([ tbaEventTeams]) => {
+        Promise.all([getFromTBA("event/" + req.params['event'] + "/matches/keys")]).then(([tbaEventTeams]) => {
             // @ts-ignore
             res.send({...tbaEventTeams});
         }).catch(next);
@@ -52,7 +53,6 @@ router.route("/event/:event/updateMatches").patch((req, res, next) => {
 });
 
 
-
 /* POSTs*/
 router.route("/event").post((req, res, next) => {
     console.log(req.body);
@@ -63,21 +63,28 @@ router.route("/event").post((req, res, next) => {
         .catch(next)
 });
 
-router.route("/event/:event/match/:match/team/:team").post( async (req, res, next) => {
-    const result = await Competition2023.updateOne(
-        {_id: req.params.event, "matchScout._id": req.params.match, "matchScout.teams._id": req.params.team},
+router.route("/event/:event/match/:match/putTeamScout").post(async (req, res, next) => {
+
+    Competition2023.updateOne({"_id": req.params.event, "matchScout._id": req.params.match, "matchScout.$.teams._id": req.body._id}, [
         {
             $set: {
                 "matchScout.$.teams.$": req.body
             }
-        }).then((event) => {
-            console.log(event);
-            console.log(event.matchedCount);
-    }).catch(next)
+        },
+    ]).then((result) => {
+        console.log(result);
+        res.send(result);
+    })
+
+
+    res.send("Updated");
+
+
 
 });
 
-const getFromTBA = async (url: string) : Promise<[Object]> => {
+
+const getFromTBA = async (url: string): Promise<[Object]> => {
     return got("https://www.thebluealliance.com/api/v3/" + url, {
         headers: {
             "X-TBA-Auth-Key": process.env.TBA_KEY
