@@ -22,8 +22,7 @@ specifiers:
   passport-google-oauth20: ^2.0.0
   passport-local: ^1.0.0
   ts-node: ^10.8.1
-  tsc: ^2.0.4
-  typescript: ^4.8.2
+  typescript: ^4.9.5
 
 dependencies:
   cors: 2.8.5
@@ -36,6 +35,7 @@ dependencies:
   passport: 0.6.0
   passport-google-oauth20: 2.0.0
   passport-local: 1.0.0
+  typescript: 4.9.5
 
 devDependencies:
   '@types/cors': 2.8.12
@@ -48,9 +48,7 @@ devDependencies:
   '@types/passport-google-oauth20': 2.0.11
   '@types/passport-local': 1.0.34
   node-dev: 7.4.3
-  ts-node: 10.9.1_tphhiizkxv2hzwkunblc3hbmra
-  tsc: 2.0.4
-  typescript: 4.8.2
+  ts-node: 10.9.1_c3kjxikbx2wugfg4o6nw2hdshe
 
 packages:
 
@@ -1174,7 +1172,7 @@ packages:
       punycode: 2.1.1
     dev: false
 
-  /ts-node/10.9.1_tphhiizkxv2hzwkunblc3hbmra:
+  /ts-node/10.9.1_c3kjxikbx2wugfg4o6nw2hdshe:
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
     hasBin: true
     peerDependencies:
@@ -1200,14 +1198,9 @@ packages:
       create-require: 1.1.1
       diff: 4.0.2
       make-error: 1.3.6
-      typescript: 4.8.2
+      typescript: 4.9.5
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
-    dev: true
-
-  /tsc/2.0.4:
-    resolution: {integrity: sha512-fzoSieZI5KKJVBYGvwbVZs/J5za84f2lSTLPYf6AGiIf43tZ3GNrI1QzTLcjtyDDP4aLxd46RTZq1nQxe7+k5Q==}
-    hasBin: true
     dev: true
 
   /type-is/1.6.18:
@@ -1218,11 +1211,10 @@ packages:
       mime-types: 2.1.35
     dev: false
 
-  /typescript/4.8.2:
-    resolution: {integrity: sha512-C0I1UsrrDHo2fYI5oaCGbSejwX4ch+9Y5jTQELvovfmFkK3HHSZJB8MSJcWLmCUBzQBchCrZ9rMRV6GuNrvGtw==}
+  /typescript/4.9.5:
+    resolution: {integrity: sha512-1FXk9E2Hm+QzZQ7z+McJiHL4NW1F2EzMu9Nq9i3zAaGqibafqYwCVU6WyWAuyQRRzOlxou8xZSyXLEN8oKj24g==}
     engines: {node: '>=4.2.0'}
     hasBin: true
-    dev: true
 
   /uid-safe/2.1.5:
     resolution: {integrity: sha512-KPHm4VL5dDXKz01UuEd88Df+KzynaohSL9fBh096KWAxSKZQDI2uBrVqtvRM4rwrIrRRKsdLNML/lnaaVSRioA==}
