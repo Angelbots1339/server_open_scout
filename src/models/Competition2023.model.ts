@@ -12,10 +12,10 @@ const fieldPos = new mongoose.Schema({
     y: Number
 });
 const autoPoint = new mongoose.Schema({
-    object: {
-        type: String,
-        enum: ["CONE", "CUBE"]
-    }
+        object: {
+            type: String,
+            enum: ["CONE", "CUBE"]
+        }
     }, {discriminatorKey: "action"}
 );
 const autoScout = new Schema({
@@ -28,16 +28,9 @@ const autoScout = new Schema({
         default: "DEFAULT"
     }
 });
-// @ts-ignore
-autoScout.path("path").discriminator("PICK", new Schema({
-    position: {
-        type: Number,
-        min: 0,
-        max: 5
-    }
-}));
-//@ts-ignore
-autoScout.path("path").discriminator("PLACE", new Schema({
+
+
+const place = new Schema({
     placeHeight: {
         type: String,
         enum: ["HYBRID", "MIDDLE", "TOP"]
@@ -47,7 +40,16 @@ autoScout.path("path").discriminator("PLACE", new Schema({
         min: 0,
         max: 8,
     }
-}));
+})
+
+const pick = new Schema({
+    position: {
+        type: Number,
+        min: 0,
+        max: 5
+    }
+})
+
 
 const cycleScout = new mongoose.Schema({
     object: {
@@ -97,5 +99,11 @@ const competition2023Schema = new mongoose.Schema({
 });
 
 const Competition2023 = mongoose.model("competition2023", competition2023Schema)
+
+const autoScouts = autoScout.path("path");
+// @ts-ignore
+autoScouts.discriminator("PICK", pick)
+// @ts-ignore
+autoScouts.discriminator("PLACE", place)
 
 export default Competition2023;
