@@ -11,44 +11,53 @@ const fieldPos = new mongoose.Schema({
     x: Number,
     y: Number
 });
-const autoPoint = new mongoose.Schema({
-        object: {
-            type: String,
-            enum: ["CONE", "CUBE"]
-        }
-    }, {discriminatorKey: "action"}
+const autoPath  = new mongoose.Schema({
+    type: {
+        type: String,
+        enum: ["cube", "cone", "pickup"]
+    },
+    id: Number,
+    height: {
+        type: String,
+        enum: ["top", "mid", "hybrid", "fail"],
+        required: false,
+    }
+    }
 );
 const autoScout = new Schema({
     startingPosition: fieldPos,
     mobility: Boolean,
-    path: [autoPoint],
+    path: [autoPath],
     chargingStation: {
         type: String,
         enum: ["PARKED", "DOCKED", "DEFUALT"],
         default: "DEFAULT"
+    },
+    onChargingStation: {
+        type: Boolean
     }
 });
 
 
-const place = new Schema({
-    placeHeight: {
-        type: String,
-        enum: ["HYBRID", "MIDDLE", "TOP"]
-    },
-    col: {
-        type: Number,
-        min: 0,
-        max: 8,
-    }
-})
-
-const pick = new Schema({
-    position: {
-        type: Number,
-        min: 0,
-        max: 5
-    }
-})
+// const place = new Schema({
+//     placeHeight: {
+//         type: String,
+//         enum: ["HYBRID", "MIDDLE", "TOP"]
+//     },
+//     col: {
+//         type: Number,
+//         min: 0,
+//         max: 8,
+//     }
+// })
+//
+// const pick = new Schema({
+//     position: {
+//         type: Number,
+//         min: 0,
+//         max: 5
+//     }
+// })
 
 
 const cycleScout = new mongoose.Schema({
@@ -56,15 +65,14 @@ const cycleScout = new mongoose.Schema({
         type: String,
         enum: ["CONE", "CUBE"]
     },
-    pickupLocation: {
+    pickup: {
         type: String,
-        enum: ["GROUND", "SINGLE_SUBSTATION", "DOUBLE_SUBSTATION_TRAY", "DOUBLE_SUBSTATION_CHUTE"]
+        enum: ["ground", "shelf", "tipped"]
     },
-    placeHeight: {
+    placement: {
         type: String,
-        enum: ["HYBRID", "MIDDLE", "TOP"]
-    },
-    Time: Number,
+        enum: ["top", "mid", "hybrid", "fail"]
+    }
 });
 const teamMatchScout = new mongoose.Schema({
     _id: {
@@ -72,10 +80,8 @@ const teamMatchScout = new mongoose.Schema({
     },
     auto: autoScout,
     cycles: [cycleScout],
-    endGame: {
-        type: String,
-        enum: ["PARKED", "DOCKED", "DEFUALT"],
-        default: "DEFAULT"
+    chargeStation: {
+        type: Boolean,
     }
 
 });
@@ -101,9 +107,11 @@ const competition2023Schema = new mongoose.Schema({
 const Competition2023 = mongoose.model("competition2023", competition2023Schema)
 
 const autoScouts = autoScout.path("path");
-// @ts-ignore
-autoScouts.discriminator("PICK", pick)
-// @ts-ignore
-autoScouts.discriminator("PLACE", place)
+
+
+// // @ts-ignore
+// autoScouts.discriminator("PICK", pick)
+// // @ts-ignore
+// autoScouts.discriminator("PLACE", place)
 
 export default Competition2023;

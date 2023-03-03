@@ -18,14 +18,18 @@ router.route("/event/:event").get((req, res, next) => {
 
     }
 );
+
 router.route("/event/:event/teams").get((req, res, next) => {
-        Promise.all([getFromTBA("event/" + req.params['event'] + "/teams")]).then(([tbaEventTeams]) => {
+        Promise.all([getFromTBA("event/" + req.params['event'] + "/teams")]).then(([ tbaEventTeams]) => {
             // @ts-ignore
             res.send({...tbaEventTeams});
         }).catch(next);
 
     }
 );
+
+
+
 
 router.route("/event/:event/matches/keys").get((req, res, next) => {
         Promise.all([getFromTBA("event/" + req.params['event'] + "/matches/keys")]).then(([tbaEventTeams]) => {
