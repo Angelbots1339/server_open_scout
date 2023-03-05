@@ -22,6 +22,11 @@ router.route("/event/:event/matches/simple").get((req, res, next) => {
         res.send(matches);
     }).catch(next)
 })
+router.route("/event/:event/matches/keys").get((req, res, next) => {
+    getFromTBA("event/" + req.params.event + "/matches/keys").then((matches) => {
+        res.send(matches);
+    }).catch(next)
+})
 
 router.route("/event/:event/updateMatches").patch((req, res, next) => {
     getFromTBA("event/" + req.params.event + "/matches").then((event) => {
