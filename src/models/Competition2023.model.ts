@@ -28,11 +28,11 @@ const autoScout = new Schema({
     startingPosition: fieldPos,
     mobility: Boolean,
     path: [autoPath],
-    chargingStation: {
-        type: String,
-        enum: ["PARKED", "DOCKED", "DEFUALT"],
-        default: "DEFAULT"
-    },
+    // chargingStation: {
+    //     type: String,
+    //     enum: ["PARKED", "DOCKED", "DEFUALT"],
+    //     default: "DEFAULT"
+    // },
     onChargingStation: {
         type: Boolean
     }
@@ -63,7 +63,7 @@ const autoScout = new Schema({
 const cycleScout = new mongoose.Schema({
     object: {
         type: String,
-        enum: ["CONE", "CUBE"]
+        enum: ["cone", "cube"]
     },
     pickup: {
         type: String,
@@ -98,8 +98,6 @@ const competition2023Schema = new mongoose.Schema({
     _id: {
         type: String
     },
-
-
     pitScout: [pitScout],
     matchScout: [matchScout]
 });
