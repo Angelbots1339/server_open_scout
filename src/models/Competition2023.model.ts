@@ -30,12 +30,17 @@ const autoScout = new Schema({
     path: [autoPath],
     // chargingStation: {
     //     type: String,
-    //     enum: ["PARKED", "DOCKED", "DEFUALT"],
+    //     enum: ["PARKED", "DOCKED", "DEFAULT"],
     //     default: "DEFAULT"
     // },
     onChargingStation: {
-        type: Boolean
-    }
+        type: String,
+        enum: ["none", "docked", "engaged"]
+    },
+    preload: {
+        type: String,
+        enum: ["cube", "cone", "none"]
+    },
 });
 
 
@@ -81,8 +86,9 @@ const teamMatchScout = new mongoose.Schema({
     auto: autoScout,
     cycles: [cycleScout],
     chargeStation: {
-        type: Boolean,
-    }
+        type: String,
+        enum: ["none", "docked", "engaged"]
+    },
 
 });
 const matchScout = new mongoose.Schema({
