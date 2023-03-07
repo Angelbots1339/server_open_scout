@@ -66,13 +66,13 @@ const autoScout = new Schema({
 
 
 const cycleScout = new mongoose.Schema({
-    object: {
+    type: {
         type: String,
         enum: ["cone", "cube"]
     },
     pickup: {
         type: String,
-        enum: ["ground", "shelf", "tipped"]
+        enum: ["ground", "substation", "tipped"]
     },
     placement: {
         type: String,
