@@ -18,6 +18,16 @@ router.route("/event/:event").get((req, res, next) => {
         }).catch(next)
     }
 );
+router.route("/event/:event/matches/simple").get((req, res, next) => {
+    getFromTBA("event/" + req.params.event + "/matches/simple").then((matches) => {
+        res.send(matches);
+    }).catch(next)
+})
+router.route("/event/:event/matches/keys").get((req, res, next) => {
+    getFromTBA("event/" + req.params.event + "/matches/keys").then((matches) => {
+        res.send(matches);
+    }).catch(next)
+})
 
 
 router.route("/event/:event/setMatches").patch((req, res, next) => {

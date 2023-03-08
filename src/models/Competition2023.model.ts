@@ -24,55 +24,21 @@ const autoPath = new mongoose.Schema({
         }
     }
 );
-autoPath.virtual('score').get(() => {
-    // @ts-ignore
-    if(this.type !== "pickup") {
-        // @ts-ignore
-        switch (this.height) {
-            case "top":
-                return 6;
-            case "mid":
-                return 4;
-            case "hybrid":
-                return 3;
-        }
-    }
-    return 0;
-});
 const autoScout = new Schema({
     startingPosition: fieldPos,
     mobility: Boolean,
     path: [autoPath],
     chargingStation: {
         type: String,
-        enum: ["Parked", "Docked", "None"],
-        default: "None"
+        enum: ["none", "docked", "engaged"]
+        default: "none"
     },
-    onChargingStation: {
-        type: Boolean
-    }
+    preload: {
+        type: String,
+        enum: ["cube", "cone", "none"]
+    },
 });
 
-
-autoScout.virtual('score').get(() => {
-    let score = 0;
-        // @ts-ignore
-        if (this.mobility) {
-            score += 3;
-        }
-        // @ts-ignore
-        if (this.chargingStation === "Parked") {
-            score += 8;
-            // @ts-ignore
-        } else if (this.chargingStation === "Docked") {
-            score += 12;
-        }
-    // @ts-ignore
-        score += this.path.reduce((acc : number, cur: any) => {acc + cur.score}, 0);
-
-    return score;
-
-});
 
 // const place = new Schema({
 //     placeHeight: {
@@ -96,31 +62,18 @@ autoScout.virtual('score').get(() => {
 
 
 const cycleScout = new mongoose.Schema({
-    object: {
+    type: {
         type: String,
-        enum: ["CONE", "CUBE"]
+        enum: ["cone", "cube"]
     },
     pickup: {
         type: String,
-        enum: ["ground", "shelf", "tipped"]
+        enum: ["ground", "substation", "tipped"]
     },
     placement: {
         type: String,
         enum: ["top", "mid", "hybrid", "fail"]
     }
-});
-
-cycleScout.virtual('score').get(() => {
-    // @ts-ignore
-    switch (this.placement) {
-        case "top":
-            return 5;
-        case "mid":
-            return 3;
-        case "hybrid":
-            return 2;
-    }
-    return 0;
 });
 const teamMatchScout = new mongoose.Schema({
     _id: {
@@ -131,30 +84,10 @@ const teamMatchScout = new mongoose.Schema({
     },
     auto: autoScout,
     cycles: [cycleScout],
-    chargeStation: {
-        type: Boolean,
-    },
     chargingStation: {
         type: String,
-        enum: ["Parked", "Docked", "None"],
-        default: "None"
-    }
-
-});
-teamMatchScout.virtual('score').get(() => {
-    let score = 0;
-    // @ts-ignore
-    score += this.auto.score;
-    // @ts-ignore
-    score += this.cycles.reduce((acc : number, cur: any) => {acc + cur.score}, 0);
-    // @ts-ignore
-    if (this.chargingStation === "Parked") {
-        score += 6;
-        // @ts-ignore
-    } else if (this.chargingStation === "Docked") {
-        score += 10;
-    }
-    return score;
+        enum: ["none", "docked", "engaged"]
+    },
 
 });
 
