@@ -1,31 +1,44 @@
 ### Get Event
-GET http://localhost:5000/2023/event/2022code
+GET {{host}}/event/2023utwv
+Accept: application/json
+###
+### Get matches team
+GET {{host}}/event/2023utwv/team/4499/matches
+Accept: application/json
+###
+### Get autos team
+GET {{host}}/event/2023utwv/team/4499/autos
+Accept: application/json
+###
+
+### Get matches team
+GET {{host}}/2023/event/2023utwv/team/4499/matches/simple
 Accept: application/json
 ###
 ### Get Event
-PATCH http://localhost:5000/2023/event/2022code/updateMatches
+PATCH {{host}}/2023/event/2022code/updateMatches
 Accept: application/json
 ###
 
 
 ### Get Events
-GET http://localhost:5000/2023/events
+GET {{host}}/2023/events
 Accept: application/json
 ###
 
 ### Post Event
-POST http://localhost:5000/2023/event
+POST {{host}}/2023/event
 Content-Type: application/json
 
 {
   "_id": "2022code"
 }
 ###
-GET http://localhost:5000/2023/event/2022code/match/qm48/team/frc5493
+GET {{host}}/event/2022code/match/qm48/team/frc5493
 
 
 ### Post Match
-POST http://localhost:5000/2023/event/2022code/match/qm48/team
+POST {{host}}/event/2022code/match/qm48/team
 Content-Type: application/json
 
 {
