@@ -33,7 +33,7 @@ const autoScout = new Schema({
     //     enum: ["PARKED", "DOCKED", "DEFAULT"],
     //     default: "DEFAULT"
     // },
-    onChargingStation: {
+    chargingStation: {
         type: String,
         enum: ["none", "docked", "engaged"]
     },
@@ -85,7 +85,7 @@ const teamMatchScout = new mongoose.Schema({
     },
     auto: autoScout,
     cycles: [cycleScout],
-    chargeStation: {
+    chargingStation: {
         type: String,
         enum: ["none", "docked", "engaged"]
     },
