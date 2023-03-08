@@ -2,10 +2,21 @@
 GET {{host}}/event/2023utwv
 Accept: application/json
 ###
+
 ### Get matches team
 GET {{host}}/event/2023utwv/team/4499/matches
 Accept: application/json
 ###
+### Get matches team
+GET {{host}}/event/2023utwv/team/4499/matches
+Accept: application/json
+###
+
+### Get matches team
+GET {{host}}/event/2023utwv/matches/flat
+Accept: application/json
+###
+
 ### Get autos team
 GET {{host}}/event/2023utwv/team/4499/autos
 Accept: application/json

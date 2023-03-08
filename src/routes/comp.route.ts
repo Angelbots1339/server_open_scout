@@ -2,6 +2,7 @@ import express from "express";
 import got from "got";
 import Competition2023 from "../models/Competition2023.model";
 import {Query} from "mongoose";
+import competition2023Model from "../models/Competition2023.model";
 
 const router = express.Router();
 
@@ -27,6 +28,11 @@ router.route("/event/:event/matches/keys").get((req, res, next) => {
     getFromTBA("event/" + req.params.event + "/matches/keys").then((matches) => {
         res.send(matches);
     }).catch(next)
+})
+router.route("/event/:event/matches/flat").get((req, res, next) => {
+    competition2023Model.aggregate(getSummery(req.params.event)).then((matches) => {
+        res.send(matches)
+    });
 })
 
 
@@ -67,13 +73,14 @@ router.route("/event/:event/teams").get((req, res, next) => {
     }
 );
 router.route("/event/:event/team/:team/matches").get((req, res, next) => {
-        getAllMatches(req.params.team).then((matches) => {
-            res.send(matches);
-        }).catch(next)
+        Competition2023.aggregate(getAllMatchesTeam(req.params.event, req.params.team)).then(
+            (matches) =>
+                res.send(matches)
+        ).catch(next)
     }
 )
 router.route("/event/:event/team/:team/autos").get((req, res, next) => {
-        Competition2023.aggregate(getTeamAutos(req.params.team)).then(
+        Competition2023.aggregate(getTeamAutos(req.params.event, req.params.team)).then(
             (autos) =>
                 res.send(autos)
         ).catch(next)
@@ -168,6 +175,40 @@ const countAuto = (eq: string) => {
         }
     }
 }
+
+const reduceAutoPath = {
+    $concat: [
+        {
+            $reduce: {
+                input: "$auto.path",
+                initialValue: "",
+                in: {
+                    $concat: ["$$value", {
+                        $cond:
+                            {
+                                if: {$eq: ["$$this.type", "pickup"]},
+                                then: "pickup: ",
+                                else: {$concat: ["$$this.type", " place ", "$$this.height", " ", {$toString: "$$this.id"}, ", "]}
+                            }
+                    }]
+                }
+            },
+
+        },
+        {
+            $switch: {
+                branches: [
+                    {case: {$eq: ["$auto.chargingStation", "engaged"]}, then: "engaged on chargingStation"},
+                    {case: {$eq: ["$auto.chargingStation", "docked"]}, then: "docked on chargingStation"}
+                ],
+                default: ""
+            }
+        }
+    ]
+
+
+}
+
 const getAutoScore = {
     $add: [
         {$multiply: [countAuto("top"), 6]},
@@ -193,10 +234,11 @@ const getAutoScore = {
     ]
 }
 const countCycles = {
-    $addFields: {
+    $project: {
         match: "$match",
         totalCycles: {$size: "$cycles"},
         autoScore: getAutoScore,
+        auto: reduceAutoPath,
         endGameScore: {
             $switch: {
                 branches: [
@@ -212,6 +254,8 @@ const countCycles = {
         groundPickupCount: countCycle("pickup", "ground"),
         tippedPickupCount: countCycle("pickup", "tipped"),
         substationPickupCount: countCycle("pickup", "substation"),
+        totalCone: countCycle("type", "cone"),
+        totalCube: countCycle("type", "cube"),
     }
 }
 
@@ -225,7 +269,7 @@ const getContributedScore = {
                 {$multiply: ["$hybridCount", 2]},
             ]
         },
-        contributedScore:{
+        contributedScore: {
             $add: [
                 {$multiply: ["$topCount", 5]},
                 {$multiply: ["$midCount", 3]},
@@ -236,6 +280,71 @@ const getContributedScore = {
         }
     }
 }
+const convertArray = (array: Object) => {
+    return {
+        $reduce: {
+            input: array,
+            initialValue: "",
+            in: {$concat: ["$$value", {$toString: "$$this"}, ", "]}
+        }
+    }
+}
+const divdeZeroProtection = (num1: Object, num2: Object) => {
+    return {
+        $cond:
+            {
+                if: {$eq: [num2, 0]},
+                then: 0,
+                else: {$divide: [num1, num2]}
+            }
+    }
+}
+const groupTeams = {
+    $group: {
+        _id: "$_id",
+        avgContributedScore: {$avg: "$contributedScore"},
+        stdContributedScore: {$stdDevPop: "$contributedScore"},
+        contributedScores: {$push: "$contributedScore"},
+        avgAutoContributedScore: {$avg: "$autoScore"},
+        stdAutoContributedScore: {$stdDevPop: "$autoScore"},
+        autoContributedScores: {$push: "$autoScore"},
+        avgTeleopContributedScore: {$avg: "$teleopScore"},
+        stdTeleopContributedScore: {$stdDevPop: "$teleopScore"},
+        teleopContributedScores: {$push: "$teleopScore"},
+        avgEndGameContributedScore: {$avg: "$endGameScore"},
+        stdEndGameContributedScore: {$stdDevPop: "$endGameScore"},
+        endGameContributedScores: {$push: "$endGameScore"},
+        avgTotalCycles: {$avg: "$totalCycles"},
+        avgTotalConeCycles: {$avg: "$totalCone"},
+        avgTotalCubeCycles: {$avg: "$totalCube"},
+        avgSubstationPickupCount: {$avg: "$substationPickupCount"},
+        avgGroundPickupCount: {$avg: "$groundPickupCount"},
+        avgTipped: {$avg: "$tippedPickupCount"}
+    }
+}
+const addArrays = {
+    $project: {
+        avgContributedScore: "$avgContributedScore",
+        stdContributedScore: "$stdContributedScore",
+        contributedScores: convertArray("$contributedScores"),
+        avgAutoContributedScore: "$avgAutoContributedScore",
+        stdAutoContributedScore: "$stdAutoContributedScore",
+        autoContributedScores: convertArray("$autoContributedScores"),
+        avgTeleopContributedScore: "$avgTeleopContributedScore",
+        stdTeleopContributedScore: "$stdTeleopContributedScore",
+        teleopContributedScores: convertArray("$teleopContributedScores"),
+        avgEndGameContributedScore: "$avgEndGameContributedScore",
+        stdEndGameContributedScore: "$stdEndGameContributedScore",
+        endGameContributedScores: convertArray("$endGameContributedScores"),
+        avgTotalCycles: "$avgTotalCycles",
+        percentOfPickedFromSub: divdeZeroProtection("$avgSubstationPickupCount", "$avgTotalCycles"),
+        percentOfPickedGround: divdeZeroProtection("$avgGroundPickupCount", "$avgTotalCycles"),
+        percentOfConesPickedTipped: divdeZeroProtection("$avgTipped", "$avgTotalConeCycles"),
+        percentCone: divdeZeroProtection("$avgTipped", "$avgTotalConeCycles"),
+        percentCube: divdeZeroProtection("$avgTotalCubeCycles", "$avgTotalCycles")
+    }
+}
+
 
 
 const getTeam = (team: string) => {
@@ -264,9 +373,99 @@ const getTeam = (team: string) => {
         getContributedScore
     ]
 }
-
-const getTeamAutos = (team: string) => {
+const getAllMatchesTeam = (comp: string, team: string) => {
     return [
+        {
+            $match: {
+                _id: comp
+            }
+        },
+        {
+            $unwind: "$matchScout"
+        },
+        {
+            $unwind: "$matchScout.teams"
+        },
+        {
+            $replaceRoot: {
+                newRoot: "$matchScout.teams"
+            }
+        },
+        {
+            $match: {
+                $and: [{
+                    _id: {
+                        $regex: team
+                    }
+                }, {auto: {$exists: true}}]
+            }
+        },
+        countCycles,
+        getContributedScore
+    ]
+}
+const getAllMatches = (comp: string) => {
+    return [
+        {
+            $match: {
+                _id: comp
+            }
+        },
+        {
+            $unwind: "$matchScout"
+        },
+        {
+            $unwind: "$matchScout.teams"
+        },
+        {
+            $replaceRoot: {
+                newRoot: "$matchScout.teams"
+            }
+        },
+        {
+            $match: {auto: {$exists: true}}
+        },
+        countCycles,
+        getContributedScore
+    ]
+}
+const getSummery = (comp: string) => {
+    return [
+        {
+            $match: {
+                _id: comp
+            }
+        },
+        {
+            $unwind: "$matchScout"
+        },
+        {
+            $unwind: "$matchScout.teams"
+        },
+        {
+            $replaceRoot: {
+                newRoot: "$matchScout.teams"
+            }
+        },
+        {
+            $match: {
+                auto: {$exists: true}
+            }
+        },
+        countCycles,
+        getContributedScore,
+        groupTeams,
+        addArrays
+    ]
+}
+
+const getTeamAutos = (comp: string, team: string) => {
+    return [
+        {
+            $match: {
+                _id: comp
+            }
+        },
         {
             $unwind: "$matchScout"
         },
@@ -299,9 +498,7 @@ const getTeamAutos = (team: string) => {
         }
     ]
 }
-const getAllMatches = async (team: string): Promise<any> => {
-    return Competition2023.aggregate(getTeam(team));
-}
+
 const getMatchesFromEachTeam = async (): Promise<any> => {
     return Competition2023.aggregate([]
     );
