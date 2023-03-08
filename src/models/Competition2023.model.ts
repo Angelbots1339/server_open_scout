@@ -30,7 +30,7 @@ const autoScout = new Schema({
     path: [autoPath],
     chargingStation: {
         type: String,
-        enum: ["none", "docked", "engaged"]
+        enum: ["none", "docked", "engaged"],
         default: "none"
     },
     preload: {

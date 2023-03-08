@@ -176,7 +176,7 @@ const getAutoScore = {
         {
             $switch: {
                 branches: [
-                    {case: {$eq: ["$auto.chargingStation", "parked"]}, then: 8},
+                    {case: {$eq: ["$auto.chargingStation", "engaged"]}, then: 8},
                     {case: {$eq: ["$auto.chargingStation", "docked"]}, then: 12}
                 ],
                 default: 0
@@ -200,7 +200,7 @@ const countCycles = {
         endGameScore: {
             $switch: {
                 branches: [
-                    {case: {$eq: ["$auto.chargingStation", "parked"]}, then: 6},
+                    {case: {$eq: ["$auto.chargingStation", "engaged"]}, then: 6},
                     {case: {$eq: ["$auto.chargingStation", "docked"]}, then: 10}
                 ],
                 default: 0
@@ -210,8 +210,8 @@ const countCycles = {
         midCount: countCycle("placement", "mid"),
         hybridCount: countCycle("placement", "hybrid"),
         groundPickupCount: countCycle("pickup", "ground"),
-        tippedPickupCount: countCycle("pickup", "shelf"),
-        shelfPickupCount: countCycle("pickup", "hybrid"),
+        tippedPickupCount: countCycle("pickup", "tipped"),
+        substationPickupCount: countCycle("pickup", "substation"),
     }
 }
 
@@ -293,7 +293,8 @@ const getTeamAutos = (team: string) => {
                 autoScore: getAutoScore,
                 autoPath: "$auto.path",
                 chargingStation: "$auto.chargingStation",
-                mobility: "$auto.mobility"
+                mobility: "$auto.mobility",
+                preload: "$auto.preload"
             }
         }
     ]
