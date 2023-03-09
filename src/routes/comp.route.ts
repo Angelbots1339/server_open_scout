@@ -290,7 +290,7 @@ const getAllPracticeMatches = (comp: string) => {
     ]
 
 }
-const getAllPracticeMatchSummery = (comp: string) => {
+const getAllPracticeMatchSummary = (comp: string) => {
     return [{
         $match: {
             _id: comp
@@ -410,27 +410,30 @@ router.route("/event/:event/matches/flat").get((req, res, next) => {
                 return team.key === match._id;
             }).nickname;
 
-            console.log(nickname);
-
-            // console.log({
-            //     ...match,
-            //     "nickname": nickname
-            // });
-
             return {
                 ...match,
                 "nickname": nickname
             }
         })
-        console.log(final);
         res.send(final);
     });
 })
 
     router.route("/event/:event/practiceMatches/flat").get((req, res, next) => {
-        competition2023Model.aggregate(getAllPracticeMatchSummery(req.params.event)).then((matches) => {
-            res.send(matches)
-        }).catch(next);
+        Promise.all([competition2023Model.aggregate(getAllPracticeMatchSummary(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams")]).then(([matches, tbaTeams]) => {
+            let final = matches.map((match) => {
+                let nickname = tbaTeams.find((team: any) => {
+                    // console.log(team.nickname);
+                    return team.key === match._id;
+                }).nickname;
+
+                return {
+                    ...match,
+                    "nickname": nickname
+                }
+            })
+            res.send(final);
+        });
     })
 
     router.route("/event/:event/matches").get((req, res, next) => {
