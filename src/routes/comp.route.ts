@@ -355,7 +355,7 @@ const getTeamAutos = (comp: string, team: string) => {
         }
     ]
 }
-const getSummery = (comp: string) => {
+const getSummary = (comp: string) => {
     return [
         {
             $match: {
@@ -409,7 +409,7 @@ router.route("/event/:event/matches/keys").get((req, res, next) => {
     }).catch(next)
 })
 router.route("/event/:event/matches/flat").get((req, res, next) => {
-    Promise.all([competition2023Model.aggregate(getSummery(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams")]).then(([matches, tbaTeams]) => {
+    Promise.all([competition2023Model.aggregate(getSummary(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams"), getFromTBA("/event/" + req.params.event + "/oprs")]).then(([matches, tbaTeams, tbaOPR]) => {
         let final = matches.map((match) => {
             let nickname = tbaTeams.find((team: any) => {
                 // console.log(team.nickname);
@@ -419,10 +419,10 @@ router.route("/event/:event/matches/flat").get((req, res, next) => {
             if(nickname != undefined) {
                 nickname = nickname.nickname;
             }
-
             return {
                 ...match,
-                "nickname": nickname
+                "nickname": nickname,
+                "opr": tbaOPR.oprs[match._id]
             }
         })
         res.send(final);
@@ -452,13 +452,43 @@ router.route("/event/:event/matches/flat").get((req, res, next) => {
     })
 
     router.route("/event/:event/matches").get((req, res, next) => {
-        competition2023Model.aggregate(getAllMatches((req.params.event))).then((matches) => {
-            res.send(matches)
+        Promise.all([competition2023Model.aggregate(getAllMatches(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams")]).then(([matches, tbaTeams]) => {
+            let final = matches.map((match) => {
+                let nickname = tbaTeams.find((team: any) => {
+                    // console.log(team.nickname);
+                    return team.key === match._id;
+                });
+
+                if(nickname != undefined) {
+                    nickname = nickname.nickname;
+                }
+
+                return {
+                    ...match,
+                    "nickname": nickname
+                }
+            })
+            res.send(final);
         }).catch(next);
     })
     router.route("/event/:event/practiceMatches").get((req, res, next) => {
-        competition2023Model.aggregate(getAllPracticeMatches((req.params.event))).then((matches) => {
-            res.send(matches)
+        Promise.all([competition2023Model.aggregate(getAllPracticeMatches(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams")]).then(([matches, tbaTeams]) => {
+            let final = matches.map((match) => {
+                let nickname = tbaTeams.find((team: any) => {
+                    // console.log(team.nickname);
+                    return team.key === match._id;
+                });
+
+                if(nickname != undefined) {
+                    nickname = nickname.nickname;
+                }
+
+                return {
+                    ...match,
+                    "nickname": nickname
+                }
+            })
+            res.send(final);
         }).catch(next);
     })
 
@@ -492,7 +522,7 @@ router.route("/event/:event/matches/flat").get((req, res, next) => {
             .catch(next)
     });
 
-    router.route("/event/:event/teams").get((req, res, next) => {
+    router.route("/event/:event/tbaTeams").get((req, res, next) => {
             Promise.all([getFromTBA("event/" + req.params['event'] + "/teams")]).then(([tbaEventTeams]) => {
                 // @ts-ignore
                 res.send({...tbaEventTeams});
