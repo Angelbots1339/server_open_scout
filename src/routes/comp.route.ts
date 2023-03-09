@@ -29,12 +29,22 @@ router.route("/event/:event/matches/keys").get((req, res, next) => {
         res.send(matches);
     }).catch(next)
 })
-router.route("/event/:event/matches/flat").get((req, res, next) => {
-    competition2023Model.aggregate(getSummery(req.params.event)).then((matches) => {
+router.route("/event/:event/practiceMatches/flat").get((req, res, next) => {
+    competition2023Model.aggregate(getAllPracticeMatchSummery(req.params.event)).then((matches) => {
         res.send(matches)
-    });
+    }).catch(next);
 })
 
+router.route("/event/:event/matches").get((req, res, next) => {
+    competition2023Model.aggregate(getAllMatches((req.params.event))).then((matches) => {
+        res.send(matches)
+    }).catch(next);
+})
+router.route("/event/:event/practiceMatches").get((req, res, next) => {
+    competition2023Model.aggregate(getAllPracticeMatches((req.params.event))).then((matches) => {
+        res.send(matches)
+    }).catch(next);
+})
 
 router.route("/event/:event/setMatches").patch((req, res, next) => {
     getFromTBA("event/" + req.params.event + "/matches").then((event) => {
@@ -251,6 +261,7 @@ const countCycles = {
         topCount: countCycle("placement", "top"),
         midCount: countCycle("placement", "mid"),
         hybridCount: countCycle("placement", "hybrid"),
+        failedCount: countCycle("placement", "fail"),
         groundPickupCount: countCycle("pickup", "ground"),
         tippedPickupCount: countCycle("pickup", "tipped"),
         substationPickupCount: countCycle("pickup", "substation"),
@@ -317,6 +328,7 @@ const groupTeams = {
         avgTotalCycles: {$avg: "$totalCycles"},
         avgTotalConeCycles: {$avg: "$totalCone"},
         avgTotalCubeCycles: {$avg: "$totalCube"},
+        avgFailedCycles: {$avg: "$failedCount"},
         avgSubstationPickupCount: {$avg: "$substationPickupCount"},
         avgGroundPickupCount: {$avg: "$groundPickupCount"},
         avgTipped: {$avg: "$tippedPickupCount"}
@@ -341,38 +353,14 @@ const addArrays = {
         percentOfPickedGround: divdeZeroProtection("$avgGroundPickupCount", "$avgTotalCycles"),
         percentOfConesPickedTipped: divdeZeroProtection("$avgTipped", "$avgTotalConeCycles"),
         percentCone: divdeZeroProtection("$avgTipped", "$avgTotalConeCycles"),
-        percentCube: divdeZeroProtection("$avgTotalCubeCycles", "$avgTotalCycles")
+        percentCube: divdeZeroProtection("$avgTotalCubeCycles", "$avgTotalCycles"),
+        percentFailed: divdeZeroProtection("$avgFailedCycles", "$avgTotalCycles")
     }
 }
 
 
 
-const getTeam = (team: string) => {
-    return [
-        {
-            $unwind: "$matchScout"
-        },
-        {
-            $unwind: "$matchScout.teams"
-        },
-        {
-            $replaceRoot: {
-                newRoot: "$matchScout.teams"
-            }
-        },
-        {
-            $match: {
-                $and: [{
-                    _id: {
-                        $regex: team
-                    }
-                }, {auto: {$exists: true}}]
-            }
-        },
-        countCycles,
-        getContributedScore
-    ]
-}
+
 const getAllMatchesTeam = (comp: string, team: string) => {
     return [
         {
@@ -428,6 +416,40 @@ const getAllMatches = (comp: string) => {
         countCycles,
         getContributedScore
     ]
+}
+const getAllPracticeMatches = (comp: string) => {
+    return [{
+        $match: {
+            _id: comp
+        }
+    },
+        {
+            $replaceRoot: {
+                newRoot: "$practiceMatches"
+            }
+        },
+        countCycles,
+        getContributedScore
+    ]
+
+}
+const getAllPracticeMatchSummery = (comp: string) => {
+    return [{
+        $match: {
+            _id: comp
+        }
+    },
+        {
+            $replaceRoot: {
+                newRoot: "$practiceMatches"
+            }
+        },
+        countCycles,
+        getContributedScore,
+        groupTeams,
+        addArrays
+    ]
+
 }
 const getSummery = (comp: string) => {
     return [
