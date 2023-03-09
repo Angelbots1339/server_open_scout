@@ -30,8 +30,27 @@ router.route("/event/:event/matches/keys").get((req, res, next) => {
     }).catch(next)
 })
 router.route("/event/:event/matches/flat").get((req, res, next) => {
-    competition2023Model.aggregate(getSummery(req.params.event)).then((matches) => {
-        res.send(matches)
+    Promise.all([competition2023Model.aggregate(getSummary(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams")]).then(([matches, tbaTeams]) => {
+        let final = matches.map((match) => {
+            let nickname = tbaTeams.find((team: any) => {
+                // console.log(team.nickname);
+                return team.key === match._id;
+            }).nickname;
+
+            console.log(nickname);
+
+            // console.log({
+            //     ...match,
+            //     "nickname": nickname
+            // });
+
+            return {
+                ...match,
+                "nickname": nickname
+            }
+        })
+        console.log(final);
+        res.send(final);
     });
 })
 
@@ -429,7 +448,7 @@ const getAllMatches = (comp: string) => {
         getContributedScore
     ]
 }
-const getSummery = (comp: string) => {
+const getSummary = (comp: string) => {
     return [
         {
             $match: {
