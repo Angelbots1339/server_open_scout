@@ -29,6 +29,29 @@ router.route("/event/:event/matches/keys").get((req, res, next) => {
         res.send(matches);
     }).catch(next)
 })
+router.route("/event/:event/matches/flat").get((req, res, next) => {
+    Promise.all([competition2023Model.aggregate(getSummary(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams")]).then(([matches, tbaTeams]) => {
+        let final = matches.map((match) => {
+            let nickname = tbaTeams.find((team: any) => {
+                // console.log(team.nickname);
+                return team.key === match._id;
+            }).nickname;
+
+            console.log(nickname);
+
+            // console.log({
+            //     ...match,
+            //     "nickname": nickname
+            // });
+
+            return {
+                ...match,
+                "nickname": nickname
+            }
+        })
+        console.log(final);
+        res.send(final);
+    });
 router.route("/event/:event/practiceMatches/flat").get((req, res, next) => {
     competition2023Model.aggregate(getAllPracticeMatchSummery(req.params.event)).then((matches) => {
         res.send(matches)
@@ -45,6 +68,7 @@ router.route("/event/:event/practiceMatches").get((req, res, next) => {
         res.send(matches)
     }).catch(next);
 })
+
 
 router.route("/event/:event/setMatches").patch((req, res, next) => {
     getFromTBA("event/" + req.params.event + "/matches").then((event) => {
@@ -261,7 +285,6 @@ const countCycles = {
         topCount: countCycle("placement", "top"),
         midCount: countCycle("placement", "mid"),
         hybridCount: countCycle("placement", "hybrid"),
-        failedCount: countCycle("placement", "fail"),
         groundPickupCount: countCycle("pickup", "ground"),
         tippedPickupCount: countCycle("pickup", "tipped"),
         substationPickupCount: countCycle("pickup", "substation"),
@@ -328,7 +351,6 @@ const groupTeams = {
         avgTotalCycles: {$avg: "$totalCycles"},
         avgTotalConeCycles: {$avg: "$totalCone"},
         avgTotalCubeCycles: {$avg: "$totalCube"},
-        avgFailedCycles: {$avg: "$failedCount"},
         avgSubstationPickupCount: {$avg: "$substationPickupCount"},
         avgGroundPickupCount: {$avg: "$groundPickupCount"},
         avgTipped: {$avg: "$tippedPickupCount"}
