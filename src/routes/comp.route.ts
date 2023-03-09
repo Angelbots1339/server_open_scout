@@ -277,9 +277,12 @@ const getAllMatches = (comp: string) => {
 const getAllPracticeMatches = (comp: string) => {
     return [{
         $match: {
-            _id: comp
+            $and: [{_id: comp}, {practiceMatches: {$exists: true}}]
         }
     },
+        {
+            $unwind: "$practiceMatches"
+        },
         {
             $replaceRoot: {
                 newRoot: "$practiceMatches"
@@ -293,9 +296,12 @@ const getAllPracticeMatches = (comp: string) => {
 const getAllPracticeMatchSummary = (comp: string) => {
     return [{
         $match: {
-            _id: comp
+            $and: [{_id: comp}, {practiceMatches: {$exists: true}}]
         }
     },
+        {
+            $unwind: "$practiceMatches"
+        },
         {
             $replaceRoot: {
                 newRoot: "$practiceMatches"
@@ -408,7 +414,11 @@ router.route("/event/:event/matches/flat").get((req, res, next) => {
             let nickname = tbaTeams.find((team: any) => {
                 // console.log(team.nickname);
                 return team.key === match._id;
-            }).nickname;
+            });
+
+            if(nickname != undefined) {
+                nickname = nickname.nickname;
+            }
 
             return {
                 ...match,
@@ -425,8 +435,13 @@ router.route("/event/:event/matches/flat").get((req, res, next) => {
                 let nickname = tbaTeams.find((team: any) => {
                     // console.log(team.nickname);
                     return team.key === match._id;
-                }).nickname;
+                });
 
+                if(nickname != undefined) {
+                    nickname = nickname.nickname;
+                }
+
+                console.log(nickname);
                 return {
                     ...match,
                     "nickname": nickname

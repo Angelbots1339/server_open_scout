@@ -1,5 +1,5 @@
 ### Get Event
-GET {{host}}/event/2023utwv
+GET {{host}}/event/2023caph/practiceMatches
 Accept: application/json
 ###
 
