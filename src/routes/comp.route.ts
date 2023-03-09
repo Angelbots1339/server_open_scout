@@ -425,6 +425,8 @@ router.route("/event/:event/matches/flat").get((req, res, next) => {
         console.log(final);
         res.send(final);
     });
+})
+
     router.route("/event/:event/practiceMatches/flat").get((req, res, next) => {
         competition2023Model.aggregate(getAllPracticeMatchSummery(req.params.event)).then((matches) => {
             res.send(matches)
@@ -548,5 +550,6 @@ router.route("/event/:event/matches/flat").get((req, res, next) => {
         );
     }
 
-})
+
+
 export default router;
