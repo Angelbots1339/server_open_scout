@@ -1,7 +1,6 @@
 import express from "express";
 import got from "got";
 import Competition2023 from "../models/Competition2023.model";
-import {Query} from "mongoose";
 import competition2023Model from "../models/Competition2023.model";
 
 const router = express.Router();
@@ -372,7 +371,7 @@ const getTeamAutos = (comp: string, team: string) => {
         }
     ]
 }
-const getSummery = (comp: string) => {
+const getSummary = (comp: string) => {
     return [
         {
             $match: {
@@ -426,7 +425,7 @@ router.route("/event/:event/matches/keys").get((req, res, next) => {
     }).catch(next)
 })
 router.route("/event/:event/matches/flat").get((req, res, next) => {
-    Promise.all([competition2023Model.aggregate(getSummery(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams")]).then(([matches, tbaTeams]) => {
+    Promise.all([competition2023Model.aggregate(getSummary(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams"), getFromTBA("/event/" + req.params.event + "/oprs")]).then(([matches, tbaTeams, tbaOPR]) => {
         let final = matches.map((match) => {
             let nickname = tbaTeams.find((team: any) => {
                 // console.log(team.nickname);
@@ -436,14 +435,14 @@ router.route("/event/:event/matches/flat").get((req, res, next) => {
             if (nickname != undefined) {
                 nickname = nickname.nickname;
             }
-
             return {
                 ...match,
-                "nickname": nickname
+                "nickname": nickname,
+                "opr": tbaOPR.oprs[match._id]
             }
         })
         res.send(final);
-    });
+    }).catch(next);
 })
 
 router.route("/event/:event/practiceMatches/flat").get((req, res, next) => {
@@ -465,38 +464,68 @@ router.route("/event/:event/practiceMatches/flat").get((req, res, next) => {
             }
         })
         res.send(final);
-    });
-})
-
-router.route("/event/:event/matches").get((req, res, next) => {
-    competition2023Model.aggregate(getAllMatches((req.params.event))).then((matches) => {
-        res.send(matches)
-    }).catch(next);
-})
-router.route("/event/:event/practiceMatches").get((req, res, next) => {
-    competition2023Model.aggregate(getAllPracticeMatches((req.params.event))).then((matches) => {
-        res.send(matches)
     }).catch(next);
 })
 
+    router.route("/event/:event/matches").get((req, res, next) => {
+        Promise.all([competition2023Model.aggregate(getAllMatches(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams")]).then(([matches, tbaTeams]) => {
+            let final = matches.map((match) => {
+                let nickname = tbaTeams.find((team: any) => {
+                    // console.log(team.nickname);
+                    return team.key === match._id;
+                });
 
-router.route("/event/:event/setMatches").patch((req, res, next) => {
-    console.log("here")
-    getFromTBA("event/" + req.params.event + "/matches").then((event) => {
-        const mapped = event.map((event: any) => ({
-            _id: `${event.comp_level}${event.match_number}`
-            ,
-            teams: event.alliances.blue.team_keys.concat(event.alliances.red.team_keys).map((team: string) => ({
-                _id: team,
-                match: `${event.comp_level}${event.match_number}`
-            }))
-        }));
+                if(nickname != undefined) {
+                    nickname = nickname.nickname;
+                }
 
-        Competition2023.updateOne({_id: req.params.event}, {matchScout: mapped}, {new: true}).then(() => {
-            res.send("Updated")
+                return {
+                    ...match,
+                    "nickname": nickname
+                }
+            })
+            res.send(final);
+        }).catch(next);
+    })
+    router.route("/event/:event/practiceMatches").get((req, res, next) => {
+        Promise.all([competition2023Model.aggregate(getAllPracticeMatches(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams")]).then(([matches, tbaTeams]) => {
+            let final = matches.map((match) => {
+                let nickname = tbaTeams.find((team: any) => {
+                    // console.log(team.nickname);
+                    return team.key === match._id;
+                });
+
+                if(nickname != undefined) {
+                    nickname = nickname.nickname;
+                }
+
+                return {
+                    ...match,
+                    "nickname": nickname
+                }
+            })
+            res.send(final);
+        }).catch(next);
+    })
+
+
+    router.route("/event/:event/setMatches").patch((req, res, next) => {
+        getFromTBA("event/" + req.params.event + "/matches").then((event) => {
+
+            const mapped = event.map((event: any) => ({
+                _id: `${event.comp_level}${event.match_number}`
+                ,
+                teams: event.alliances.blue.team_keys.concat(event.alliances.red.team_keys).map((team: string) => ({
+                    _id: team,
+                    match: `${event.comp_level}${event.match_number}`
+                }))
+            }));
+
+            Competition2023.updateOne({_id: req.params.event}, {matchScout: mapped}, {new: true}).then(() => {
+                res.send("Updated")
+            }).catch(next)
         }).catch(next)
-    }).catch(next)
-});
+    });
 
 
 /* POSTs*/
@@ -509,31 +538,31 @@ router.route("/event").post((req, res, next) => {
         .catch(next)
 });
 
-router.route("/event/:event/teams").get((req, res, next) => {
-        Promise.all([getFromTBA("event/" + req.params['event'] + "/teams")]).then(([tbaEventTeams]) => {
-            // @ts-ignore
-            res.send({...tbaEventTeams});
-        }).catch(next);
-    }
-);
-router.route("/event/:event/team/:team/matches").get((req, res, next) => {
-        Competition2023.aggregate(getAllMatchesTeam(req.params.event, req.params.team)).then(
-            (matches) =>
-                res.send(matches)
-        ).catch(next)
-    }
-)
-router.route("/event/:event/team/:team/autos").get((req, res, next) => {
-        Competition2023.aggregate(getTeamAutos(req.params.event, req.params.team)).then(
-            (autos) =>
-                res.send(autos)
-        ).catch(next)
-    }
-)
+    router.route("/event/:event/tbaTeams").get((req, res, next) => {
+            Promise.all([getFromTBA("event/" + req.params['event'] + "/teams")]).then(([tbaEventTeams]) => {
+                // @ts-ignore
+                res.send({...tbaEventTeams});
+            }).catch(next);
+        }
+    );
+    router.route("/event/:event/team/:team/matches").get((req, res, next) => {
+            Competition2023.aggregate(getAllMatchesTeam(req.params.event, req.params.team)).then(
+                (matches) =>
+                    res.send(matches)
+            ).catch(next)
+        }
+    )
+    router.route("/event/:event/team/:team/autos").get((req, res, next) => {
+            Competition2023.aggregate(getTeamAutos(req.params.event, req.params.team)).then(
+                (autos) =>
+                    res.send(autos)
+            ).catch(next)
+        }
+    )
 
 
 router.route("/event/:event/match/:match/team").post(async (req, res, next) => {
-    const result = await Competition2023.updateOne(
+    Competition2023.updateOne(
         {_id: req.params.event},
         {
             $set: {
@@ -550,7 +579,7 @@ router.route("/event/:event/match/:match/team").post(async (req, res, next) => {
     }).catch(next)
 });
 router.route("/event/:event/practiceMatch").post(async (req, res, next) => {
-    const result = await Competition2023.updateOne(
+    Competition2023.updateOne(
         {_id: req.params.event},
         {
             $push: {
@@ -563,7 +592,7 @@ router.route("/event/:event/practiceMatch").post(async (req, res, next) => {
 
 
 router.route("/event/:event/match/:match/team/:team").get(async (req, res, next) => {
-    const result = await Competition2023.findOne(
+    Competition2023.findOne(
         {_id: req.params.event},
         {
             $get: "matchScout.$[match].teams.$[team]"
@@ -580,10 +609,8 @@ router.route("/event/:event/match/:match/team/:team").get(async (req, res, next)
 });
 
 
-const getMatchesFromEachTeam = async (): Promise<any> => {
-    return Competition2023.aggregate([]
-    );
-}
+
+
 
 
 export default router;
