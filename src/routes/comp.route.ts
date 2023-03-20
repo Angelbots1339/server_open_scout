@@ -27,6 +27,38 @@ const countCycle = (input: string, eq: string) => {
         }
     }
 }
+const countSubstation = (input: string, eq: string) => {
+    return {
+        $size: {
+            $filter: {
+                input: "$cycles",
+                as: "cycle",
+                cond: {
+                    $or: [
+                        {
+                            $eq: [
+                                "$$cycle.pickup",
+                                "substation"
+                            ]
+                        },
+                        {
+                            $eq: [
+                                "$$cycle.pickup",
+                                "single"
+                            ]
+                        },
+                        {
+                            $eq: [
+                                "$$cycle.pickup",
+                                "double"
+                            ]
+                        }
+                        ]
+                }
+            }
+        }
+    }
+}
 const countAuto = (eq: string) => {
     return {
         $size: {
@@ -122,7 +154,9 @@ const countCycles = {
         failedCount: countCycle("placement", "fail"),
         groundPickupCount: countCycle("pickup", "ground"),
         tippedPickupCount: countCycle("pickup", "tipped"),
-        substationPickupCount: countCycle("pickup", "substation"),
+        singleSubstationPickupCount: countCycle("pickup", "single"),
+        doubleSubstationPickupCount: countCycle("pickup", "double"),
+        substationPickupCount: countSubstation,
         totalCone: countCycle("type", "cone"),
         totalCube: countCycle("type", "cube"),
     }
@@ -195,6 +229,8 @@ const groupTeams = {
         totalHybridCycles: {$sum: "$hybridCount"},
         totalFailedCycles: {$sum: "$failedCount"},
         totalSubstationPickupCount: {$sum: "$substationPickupCount"},
+        totalSingleSubstationPickupCount: {$sum: "$singleSubstationPickupCount"},
+        totalDoubleSubstationPickupCount: {$sum: "$doubleSubstationPickupCount"},
         totalGroundPickupCount: {$sum: "$groundPickupCount"},
         totalTipped: {$sum: "$tippedPickupCount"}
     }
@@ -216,7 +252,9 @@ const addArrays = {
         percentHybrid: divideZeroProtection("$totalHybridCycles", "$totalCycles"),
         percentCone: divideZeroProtection("$totalConeCycles", "$totalCycles"),
         percentCube: divideZeroProtection("$totalCubeCycles", "$totalCycles"),
-        percentOfPickedFromSub: divideZeroProtection("$totalSubstationPickupCount", "$totalCycles"),
+        percentOfPickupFromSingle: divideZeroProtection("$totalSingleSubstationPickupCount", "$totalCycles"),
+        percentOfPickupFromDouble: divideZeroProtection("$totalDoubleSubstationPickupCount", "$totalCycles"),
+        percentOfPickedFromBothSub: divideZeroProtection("$totalSubstationPickupCount", "$totalCycles"),
         percentOfPickedGround: divideZeroProtection("$totalGroundPickupCount", "$totalCycles"),
         percentOfConesPickedTipped: divideZeroProtection("$totalTipped", "$totalConeCycles"),
         percentFailed: divideZeroProtection("$totalFailedCycles", "$totalCycles")
@@ -239,7 +277,7 @@ const getAllMatchesTeam = (comp: string, team: string) => {
         },
         {
             $addFields: {
-                "matchScout.teams.match" : "$matchScout._id"
+                "matchScout.teams.match": "$matchScout._id"
             }
         },
         {
@@ -275,7 +313,7 @@ const getAllMatches = (comp: string) => {
         },
         {
             $addFields: {
-                "matchScout.teams.match" : "$matchScout._id"
+                "matchScout.teams.match": "$matchScout._id"
             }
         },
         {
@@ -467,65 +505,65 @@ router.route("/event/:event/practiceMatches/flat").get((req, res, next) => {
     }).catch(next);
 })
 
-    router.route("/event/:event/matches").get((req, res, next) => {
-        Promise.all([competition2023Model.aggregate(getAllMatches(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams")]).then(([matches, tbaTeams]) => {
-            let final = matches.map((match) => {
-                let nickname = tbaTeams.find((team: any) => {
-                    // console.log(team.nickname);
-                    return team.key === match._id;
-                });
+router.route("/event/:event/matches").get((req, res, next) => {
+    Promise.all([competition2023Model.aggregate(getAllMatches(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams")]).then(([matches, tbaTeams]) => {
+        let final = matches.map((match) => {
+            let nickname = tbaTeams.find((team: any) => {
+                // console.log(team.nickname);
+                return team.key === match._id;
+            });
 
-                if(nickname != undefined) {
-                    nickname = nickname.nickname;
-                }
+            if (nickname != undefined) {
+                nickname = nickname.nickname;
+            }
 
-                return {
-                    ...match,
-                    "nickname": nickname
-                }
-            })
-            res.send(final);
-        }).catch(next);
-    })
-    router.route("/event/:event/practiceMatches").get((req, res, next) => {
-        Promise.all([competition2023Model.aggregate(getAllPracticeMatches(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams")]).then(([matches, tbaTeams]) => {
-            let final = matches.map((match) => {
-                let nickname = tbaTeams.find((team: any) => {
-                    // console.log(team.nickname);
-                    return team.key === match._id;
-                });
+            return {
+                ...match,
+                "nickname": nickname
+            }
+        })
+        res.send(final);
+    }).catch(next);
+})
+router.route("/event/:event/practiceMatches").get((req, res, next) => {
+    Promise.all([competition2023Model.aggregate(getAllPracticeMatches(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams")]).then(([matches, tbaTeams]) => {
+        let final = matches.map((match) => {
+            let nickname = tbaTeams.find((team: any) => {
+                // console.log(team.nickname);
+                return team.key === match._id;
+            });
 
-                if(nickname != undefined) {
-                    nickname = nickname.nickname;
-                }
+            if (nickname != undefined) {
+                nickname = nickname.nickname;
+            }
 
-                return {
-                    ...match,
-                    "nickname": nickname
-                }
-            })
-            res.send(final);
-        }).catch(next);
-    })
+            return {
+                ...match,
+                "nickname": nickname
+            }
+        })
+        res.send(final);
+    }).catch(next);
+})
 
 
-    router.route("/event/:event/setMatches").patch((req, res, next) => {
-        getFromTBA("event/" + req.params.event + "/matches").then((event) => {
+router.route("/event/:event/setMatches").patch((req, res, next) => {
+    getFromTBA("event/" + req.params.event + "/matches").then((event) => {
 
-            const mapped = event.map((event: any) => ({
-                _id: `${event.comp_level}${event.match_number}`
-                ,
-                teams: event.alliances.blue.team_keys.concat(event.alliances.red.team_keys).map((team: string) => ({
-                    _id: team,
-                    match: `${event.comp_level}${event.match_number}`
-                }))
-            }));
+        const mapped = event.map((event: any) => ({
+            _id: `${event.comp_level}${event.match_number}`
+            ,
+            teams: event.alliances.blue.team_keys.concat(event.alliances.red.team_keys).map((team: string) => ({
+                _id: team,
+                match: `${event.comp_level}${event.match_number}`
+            }))
+        }));
 
-            Competition2023.updateOne({_id: req.params.event}, {matchScout: mapped}, {new: true}).then(() => {
-                res.send("Updated")
-            }).catch(next)
+        Competition2023.updateOne({_id: req.params.event}, {matchScout: mapped}, {new: true}).then(() => {
+            res.send("Updated")
         }).catch(next)
-    });
+    }).catch(next)
+});
 
 
 /* POSTs*/
@@ -538,27 +576,27 @@ router.route("/event").post((req, res, next) => {
         .catch(next)
 });
 
-    router.route("/event/:event/tbaTeams").get((req, res, next) => {
-            Promise.all([getFromTBA("event/" + req.params['event'] + "/teams")]).then(([tbaEventTeams]) => {
-                // @ts-ignore
-                res.send({...tbaEventTeams});
-            }).catch(next);
-        }
-    );
-    router.route("/event/:event/team/:team/matches").get((req, res, next) => {
-            Competition2023.aggregate(getAllMatchesTeam(req.params.event, req.params.team)).then(
-                (matches) =>
-                    res.send(matches)
-            ).catch(next)
-        }
-    )
-    router.route("/event/:event/team/:team/autos").get((req, res, next) => {
-            Competition2023.aggregate(getTeamAutos(req.params.event, req.params.team)).then(
-                (autos) =>
-                    res.send(autos)
-            ).catch(next)
-        }
-    )
+router.route("/event/:event/tbaTeams").get((req, res, next) => {
+        Promise.all([getFromTBA("event/" + req.params['event'] + "/teams")]).then(([tbaEventTeams]) => {
+            // @ts-ignore
+            res.send({...tbaEventTeams});
+        }).catch(next);
+    }
+);
+router.route("/event/:event/team/:team/matches").get((req, res, next) => {
+        Competition2023.aggregate(getAllMatchesTeam(req.params.event, req.params.team)).then(
+            (matches) =>
+                res.send(matches)
+        ).catch(next)
+    }
+)
+router.route("/event/:event/team/:team/autos").get((req, res, next) => {
+        Competition2023.aggregate(getTeamAutos(req.params.event, req.params.team)).then(
+            (autos) =>
+                res.send(autos)
+        ).catch(next)
+    }
+)
 
 
 router.route("/event/:event/match/:match/team").post(async (req, res, next) => {
@@ -607,10 +645,6 @@ router.route("/event/:event/match/:match/team/:team").get(async (req, res, next)
         console.log(event);
     }).catch(next)
 });
-
-
-
-
 
 
 export default router;
