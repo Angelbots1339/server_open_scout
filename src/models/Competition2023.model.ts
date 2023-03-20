@@ -68,7 +68,7 @@ const cycleScout = new mongoose.Schema({
     },
     pickup: {
         type: String,
-        enum: ["ground", "substation", "tipped"]
+        enum: ["ground", "single", "double", "tipped"]
     },
     placement: {
         type: String,
