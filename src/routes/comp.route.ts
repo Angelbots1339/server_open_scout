@@ -159,6 +159,7 @@ const countCycles = {
         substationPickupCount: countSubstation,
         totalCone: countCycle("type", "cone"),
         totalCube: countCycle("type", "cube"),
+        scoutName: "$scoutName",
     }
 }
 
