@@ -159,6 +159,7 @@ const countCycles = {
         substationPickupCount: countSubstation,
         totalCone: countCycle("type", "cone"),
         totalCube: countCycle("type", "cube"),
+        scoutName: "$scoutName",
     }
 }
 
@@ -295,7 +296,7 @@ const getAllMatchesTeam = (comp: string, team: string) => {
             }
         },
         countCycles,
-        getContributedScore
+        getContributedScore,
     ]
 }
 const getAllMatches = (comp: string) => {
@@ -325,7 +326,18 @@ const getAllMatches = (comp: string) => {
             $match: {auto: {$exists: true}}
         },
         countCycles,
-        getContributedScore
+        getContributedScore,
+        {
+            $addFields: {
+                uid: {
+                    $toInt: {
+                        $last: { $split: ["$match", "m"] }
+                    }
+                }
+            }
+        },
+        {$sort: {"uid": 1, "_id": 1}},
+        {$unset: "uid"},
     ]
 }
 const getAllPracticeMatches = (comp: string) => {
@@ -506,6 +518,7 @@ router.route("/event/:event/practiceMatches/flat").get((req, res, next) => {
 })
 
 router.route("/event/:event/matches").get((req, res, next) => {
+    // @ts-ignore
     Promise.all([competition2023Model.aggregate(getAllMatches(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams")]).then(([matches, tbaTeams]) => {
         let final = matches.map((match) => {
             let nickname = tbaTeams.find((team: any) => {
@@ -584,7 +597,8 @@ router.route("/event/:event/tbaTeams").get((req, res, next) => {
     }
 );
 router.route("/event/:event/team/:team/matches").get((req, res, next) => {
-        Competition2023.aggregate(getAllMatchesTeam(req.params.event, req.params.team)).then(
+        // @ts-ignore
+    Competition2023.aggregate(getAllMatchesTeam(req.params.event, req.params.team)).then(
             (matches) =>
                 res.send(matches)
         ).catch(next)
