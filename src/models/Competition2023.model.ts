@@ -89,6 +89,7 @@ const teamMatchScout = new mongoose.Schema({
         enum: ["none", "docked", "engaged"]
     },
     scoutName: String,
+    brokeDown: Boolean,
 
 });
 
