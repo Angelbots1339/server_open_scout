@@ -212,7 +212,7 @@ const divideZeroProtection = (num1: Object, num2: Object) => {
 const groupTeams = {
     $group: {
         _id: "$_id",
-        matchCount: {$sum: 1},
+        matchesScouted: {$sum: 1},
         totalCycles: {$sum: "$totalCycles"},
         avgCycles: {$avg: "$totalCycles"},
         avgContributedScore: {$avg: "$contributedScore"},
@@ -455,43 +455,64 @@ const getSummary = (comp: string) => {
 router.route("/events").get(async (req, res, next) => {
     Competition2023.find().then((data) => {
         res.send(data)
+        console.log("2023/events" + " Requested");
     }).catch(next);
 });
 router.route("/event/:event").get((req, res, next) => {
         Promise.all([Competition2023.findById(req.params.event), getFromTBA("event/" + req.params.event)]).then(([event, tbaEvent]) => {
             // @ts-ignore
             res.send({...event?.toObject(), ...tbaEvent});
+            console.log("2023/event/:event" + " Requested");
         }).catch(next)
     }
 );
 router.route("/event/:event/matches/simple").get((req, res, next) => {
     getFromTBA("event/" + req.params.event + "/matches/simple").then((matches) => {
         res.send(matches);
+    console.log("2023/event/:event/matches/simple" + " Requested");
     }).catch(next)
 })
 router.route("/event/:event/matches/keys").get((req, res, next) => {
     getFromTBA("event/" + req.params.event + "/matches/keys").then((matches) => {
         res.send(matches);
+    console.log("2023/event/:event/matches/keys" + " Requested");
     }).catch(next)
 })
 router.route("/event/:event/matches/flat").get((req, res, next) => {
-    Promise.all([competition2023Model.aggregate(getSummary(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams"), getFromTBA("/event/" + req.params.event + "/oprs")]).then(([matches, tbaTeams, tbaOPR]) => {
+    Promise.all([competition2023Model.aggregate(getSummary(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams"), getFromTBA("/event/" + req.params.event + "/oprs"), getFromTBA("/event/" + req.params.event + "/rankings")]).then(([matches, tbaTeams, tbaOPR, tbaRankings]) => {
         let final = matches.map((match) => {
             let nickname = tbaTeams.find((team: any) => {
-                // console.log(team.nickname);
                 return team.key === match._id;
+            });
+
+            let rank = tbaRankings.rankings.find((team: any) => {
+                return team.team_key === match._id;
             });
 
             if (nickname != undefined) {
                 nickname = nickname.nickname;
             }
+            let winLossRatio: any;
+            let numMatchesPlayed: any;
+            if (rank != undefined) {
+                // console.log(rank);
+                winLossRatio = rank.record.wins + "-" + rank.record.losses + "-" + rank.record.ties;
+                numMatchesPlayed = rank.matches_played;
+                rank = rank.rank;
+            }
+
+
             return {
                 ...match,
                 "nickname": nickname,
-                "opr": tbaOPR.oprs[match._id]
+                "opr": tbaOPR.oprs[match._id],
+                "rank": rank,
+                "winLossRatio": winLossRatio,
+                "numMatchesPlayed": numMatchesPlayed
             }
         })
         res.send(final);
+        console.log("2023/event/:event/matches/flat" + " Requested");
     }).catch(next);
 })
 
@@ -514,6 +535,7 @@ router.route("/event/:event/practiceMatches/flat").get((req, res, next) => {
             }
         })
         res.send(final);
+        console.log("2023/event/:event/practiceMatches/flat" + " Requested");
     }).catch(next);
 })
 
@@ -536,6 +558,7 @@ router.route("/event/:event/matches").get((req, res, next) => {
             }
         })
         res.send(final);
+        console.log("2023/event/:event/matches" + " Requested");
     }).catch(next);
 })
 router.route("/event/:event/practiceMatches").get((req, res, next) => {
@@ -556,6 +579,7 @@ router.route("/event/:event/practiceMatches").get((req, res, next) => {
             }
         })
         res.send(final);
+        console.log("2023/event/:event/practiceMatches" + " Requested");
     }).catch(next);
 })
 
@@ -574,6 +598,7 @@ router.route("/event/:event/setMatches").patch((req, res, next) => {
 
         Competition2023.updateOne({_id: req.params.event}, {matchScout: mapped}, {new: true}).then(() => {
             res.send("Updated")
+            console.log("2023/event/:event/matches/flat" + " Patched");
         }).catch(next)
     }).catch(next)
 });
@@ -585,6 +610,7 @@ router.route("/event").post((req, res, next) => {
     Competition2023.create(req.body)
         .then((event) => {
             res.send(event)
+            console.log("2023/event" + " Posted");
         })
         .catch(next)
 });
@@ -593,6 +619,7 @@ router.route("/event/:event/tbaTeams").get((req, res, next) => {
         Promise.all([getFromTBA("event/" + req.params['event'] + "/teams")]).then(([tbaEventTeams]) => {
             // @ts-ignore
             res.send({...tbaEventTeams});
+            console.log("2023/event/:event/tbaTeams" + " Requested");
         }).catch(next);
     }
 );
@@ -600,14 +627,19 @@ router.route("/event/:event/team/:team/matches").get((req, res, next) => {
         // @ts-ignore
     Competition2023.aggregate(getAllMatchesTeam(req.params.event, req.params.team)).then(
             (matches) =>
+            {
                 res.send(matches)
+                console.log("2023/event/:event/team/:team/matches" + " Requested");
+            }
         ).catch(next)
     }
 )
 router.route("/event/:event/team/:team/autos").get((req, res, next) => {
         Competition2023.aggregate(getTeamAutos(req.params.event, req.params.team)).then(
-            (autos) =>
+            (autos) => {
                 res.send(autos)
+                console.log("2023/event/:event/team/:team/autos" + " Requested");
+            }
         ).catch(next)
     }
 )
@@ -628,6 +660,7 @@ router.route("/event/:event/match/:match/team").post(async (req, res, next) => {
             }]
         }).then((event) => {
         res.send(event)
+        console.log("2023/event/:event/match/:match/team" + " Posted");
     }).catch(next)
 });
 router.route("/event/:event/practiceMatch").post(async (req, res, next) => {
@@ -639,6 +672,7 @@ router.route("/event/:event/practiceMatch").post(async (req, res, next) => {
             }
         }).then((event) => {
         res.send(event)
+        console.log("2023/event/:event/practiceMatch" + " Posted");
     }).catch(next)
 });
 
@@ -656,7 +690,7 @@ router.route("/event/:event/match/:match/team/:team").get(async (req, res, next)
             }]
         }).then((event) => {
         res.send(event)
-        console.log(event);
+        console.log("2023/event/:event/match/:match/team/:team" + " Requested");
     }).catch(next)
 });
 
