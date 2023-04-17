@@ -13,7 +13,7 @@ Accept: application/json
 ###
 
 ### Get matches team
-GET {{host}}/event/2023utwv/matches
+GET {{host}}/event/2023utwv/matches/flat
 Accept: application/json
 ###
 

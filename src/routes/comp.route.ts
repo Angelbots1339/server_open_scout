@@ -133,6 +133,30 @@ const getAutoScore = {
         }
     ]
 }
+const autoSummery = {
+    $concat: [
+        {$toString: countAuto("hybrid")}, "|",
+        {$toString: countAuto("mid")}, "|",
+        {$toString:countAuto("top")}, " ",
+        {
+            $cond:
+                {
+                    if: "$auto.mobility",
+                    then: "M",
+                    else: ""
+                }
+        },
+        {
+            $switch: {
+                branches: [
+                    {case: {$eq: ["$auto.chargingStation", "engaged"]}, then: "E"},
+                    {case: {$eq: ["$auto.chargingStation", "docked"]}, then: "D"}
+                ],
+                default: ""
+            }
+        }
+    ]
+}
 const countCycles = {
     $project: {
         match: "$match",
@@ -164,6 +188,38 @@ const countCycles = {
 }
 
 
+const countCyclesFlat = {
+    $project: {
+        match: "$match",
+        totalCycles: {$size: "$cycles"},
+        autoScore: getAutoScore,
+        auto: autoSummery,
+
+        endGameScore: {
+            $switch: {
+                branches: [
+                    {case: {$eq: ["$auto.chargingStation", "engaged"]}, then: 6},
+                    {case: {$eq: ["$auto.chargingStation", "docked"]}, then: 10}
+                ],
+                default: 0
+            }
+        },
+        topCount: countCycle("placement", "top"),
+        midCount: countCycle("placement", "mid"),
+        hybridCount: countCycle("placement", "hybrid"),
+        failedCount: countCycle("placement", "fail"),
+        groundPickupCount: countCycle("pickup", "ground"),
+        tippedPickupCount: countCycle("pickup", "tipped"),
+
+        singleSubstationPickupCount: countCycle("pickup", "single"),
+        doubleSubstationPickupCount: countCycle("pickup", "double"),
+        substationPickupCount: countSubstation,
+        totalCone: countCycle("type", "cone"),
+        totalCube: countCycle("type", "cube"),
+    }
+}
+
+
 const getContributedScore = {
     $addFields: {
         teleopScore: {
@@ -184,6 +240,30 @@ const getContributedScore = {
         }
     }
 }
+const getContributedScoreFlat = {
+    $addFields: {
+        teleopScore: {
+            $add: [
+                {$multiply: ["$topCount", 5]},
+                {$multiply: ["$midCount", 3]},
+                {$multiply: ["$hybridCount", 2]},
+            ]
+        },
+        contributedScore: {
+            $add: [
+                {$multiply: ["$topCount", 5]},
+                {$multiply: ["$midCount", 3]},
+                {$multiply: ["$hybridCount", 2]},
+                "$autoScore",
+                "$endGameScore"
+            ]
+        },
+        scoreSummery: {
+            $concat: [{$toString:"$hybridCount"}, "|", {$toString:"$midCount"}, "|",{$toString:"$topCount"}]
+        }
+    }
+}
+
 const convertArray = (array: Object) => {
     return {
         $reduce: {
@@ -209,11 +289,14 @@ const divideZeroProtection = (num1: Object, num2: Object) => {
     }
 
 }
+
+
 const groupTeams = {
     $group: {
         _id: "$_id",
         matchesScouted: {$sum: 1},
         totalCycles: {$sum: "$totalCycles"},
+        totalCyclesList: {$push: "$totalCycles"},
         avgCycles: {$avg: "$totalCycles"},
         avgContributedScore: {$avg: "$contributedScore"},
         contributedScores: {$push: "$contributedScore"},
@@ -226,8 +309,13 @@ const groupTeams = {
         totalConeCycles: {$sum: "$totalCone"},
         totalCubeCycles: {$sum: "$totalCube"},
         totalHighCycles: {$sum: "$topCount"},
+        scoreSummery: {$push: "$scoreSummery"},
+        autoSummery: {$push: "$auto"},
+        avgHighCycles: {$avg: "$topCount"},
         totalMidCycles: {$sum: "$midCount"},
+        avgMidCycles: {$avg: "$midCount"},
         totalHybridCycles: {$sum: "$hybridCount"},
+        avgHybridCycles: {$avg: "$hybridCount"},
         totalFailedCycles: {$sum: "$failedCount"},
         totalSubstationPickupCount: {$sum: "$substationPickupCount"},
         totalSingleSubstationPickupCount: {$sum: "$singleSubstationPickupCount"},
@@ -247,6 +335,12 @@ const addArrays = {
         teleopContributedScores: convertArray("$teleopContributedScores"),
         endGameContributedScores: convertArray("$endGameContributedScores"),
         avgTotalCycles: "$avgCycles",
+        totalCycles: convertArray("$totalCyclesList"),
+        avgHighCycles: "$avgHighCycles",
+        avgMidCycles: "$avgMidCycles",
+        avgHybridCycles: "$avgHybridCycles",
+        autoSummery: convertArray("$autoSummery"),
+        scoreSummery: convertArray("$scoreSummery"),
         matchCount: "$matchCount",
         percentHigh: divideZeroProtection("$totalHighCycles", "$totalCycles"),
         percentMid: divideZeroProtection("$totalMidCycles", "$totalCycles"),
@@ -373,8 +467,8 @@ const getAllPracticeMatchSummary = (comp: string) => {
                 newRoot: "$practiceMatches"
             }
         },
-        countCycles,
-        getContributedScore,
+        countCyclesFlat,
+        getContributedScoreFlat,
         groupTeams,
         addArrays
     ]
@@ -444,8 +538,8 @@ const getSummary = (comp: string) => {
                 auto: {$exists: true}
             }
         },
-        countCycles,
-        getContributedScore,
+        countCyclesFlat,
+        getContributedScoreFlat,
         groupTeams,
         addArrays
     ]
