@@ -1,5 +1,5 @@
 ### Get Event
-GET {{host}}/event/2023caph/practiceMatches
+GET {{host}}/event/2023utwv
 Accept: application/json
 ###
 
@@ -17,11 +17,6 @@ GET {{host}}/event/2023utwv/matches/flat
 Accept: application/json
 ###
 
-### Get matches team
-GET {{host}}/event/2023cokc/tbaTeams
-Accept: application/json
-###
-
 ### Get autos team
 GET {{host}}/event/2023utwv/team/4499/autos
 Accept: application/json
@@ -34,12 +29,8 @@ Accept: application/json
 
 
 
-### Patch Event
-PATCH {{host}}/event/2023cokc/setMatches
-Accept: application/json
-###
-### Patch Event
-PATCH localhost:3001/2023/event/2023cokc/setMatches
+### Get Event
+PATCH {{host}}/event/2022okok/setMatches
 Accept: application/json
 ###
 
@@ -54,7 +45,7 @@ POST {{host}}/event
 Content-Type: application/json
 
 {
-  "_id": "2023cokc"
+  "_id": "2023okok"
 }
 ###
 GET {{host}}/event/2022code/match/qm48/team/frc5493
