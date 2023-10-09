@@ -48,5 +48,8 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 
 })
 
+
 const port = process.env.PORT || 3001; // process.env.port is Heroku's port
-app.listen(port, () => console.log(`Server up and running on port ${port}`))
+app.listen(port, () => {
+    console.log(`Server up and running on port ${port}`)
+})

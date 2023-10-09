@@ -11,6 +11,9 @@ const getFromTBA = async (url: string): Promise<any> => {
         }
     }).json();
 }
+const getFromStatbotics = async (url: string): Promise<any> => {
+    return got("https://api.statbotics.io/" + url).json();
+}
 const countCycle = (input: string, eq: string) => {
     return {
         $size: {
@@ -479,16 +482,14 @@ router.route("/event/:event/matches/keys").get((req, res, next) => {
     }).catch(next)
 })
 router.route("/event/:event/matches/flat").get((req, res, next) => {
-    Promise.all([competition2023Model.aggregate(getSummary(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams"), getFromTBA("/event/" + req.params.event + "/oprs"), getFromTBA("/event/" + req.params.event + "/rankings")]).then(([matches, tbaTeams, tbaOPR, tbaRankings]) => {
+    Promise.all([competition2023Model.aggregate(getSummary(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams"), getFromTBA("/event/" + req.params.event + "/oprs"), getFromTBA("/event/" + req.params.event + "/rankings"), getFromStatbotics("team_years/")]).then(([matches, tbaTeams, tbaOPR, tbaRankings, statboticsTeamsYears]) => {
         let final = matches.map((match) => {
             let nickname = tbaTeams.find((team: any) => {
                 return team.key === match._id;
             });
-
             let rank = tbaRankings.rankings.find((team: any) => {
                 return team.team_key === match._id;
             });
-
             if (nickname != undefined) {
                 nickname = nickname.nickname;
             }
@@ -496,10 +497,12 @@ router.route("/event/:event/matches/flat").get((req, res, next) => {
             let numMatchesPlayed: any;
             if (rank != undefined) {
                 // console.log(rank);
-                winLossRatio = rank.record.wins + "-" + rank.record.losses + "-" + rank.record.ties;
+                winLossRatio = rank.record.wins + " | " + rank.record.losses + " | " + rank.record.ties;
+                console.log(winLossRatio);
                 numMatchesPlayed = rank.matches_played;
                 rank = rank.rank;
             }
+
 
 
             return {
@@ -615,10 +618,15 @@ router.route("/event").post((req, res, next) => {
         .catch(next)
 });
 
+let kcmtTeams = require('./kcmtTeams.json');
+kcmtTeams = kcmtTeams.teams;
+console.log(kcmtTeams);
+
 router.route("/event/:event/tbaTeams").get((req, res, next) => {
         Promise.all([getFromTBA("event/" + req.params['event'] + "/teams")]).then(([tbaEventTeams]) => {
             // @ts-ignore
-            res.send({...tbaEventTeams});
+            let finalTeams = {...tbaEventTeams, ...kcmtTeams};
+            res.send(finalTeams);
             console.log("2023/event/:event/tbaTeams" + " Requested");
         }).catch(next);
     }
