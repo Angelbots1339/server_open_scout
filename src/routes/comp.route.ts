@@ -7,43 +7,43 @@ import competition2023Model from "../models/Competition2023.model";
 let kcmtTeams: any = {
     "teams": {
         "22": {
-            "key": "frc9339",
-            "team_number": 9339,
+            "key": "frc9997",
+            "team_number": 9997,
             "nickname": "Anglebotics"
         },
         "23": {
-            "key": "frc9338",
-            "team_number": 9338,
+            "key": "frc9996",
+            "team_number": 9996,
             "nickname": "The Kraken 2"
         },
         "24": {
-            "key": "frc9337",
-            "team_number": 9337,
+            "key": "frc9995",
+            "team_number": 9995,
             "nickname": "Up A Creek 2"
         },
         "25": {
-            "key": "frc9336",
-            "team_number": 9336,
+            "key": "frc9994",
+            "team_number": 9994,
             "nickname": "Power Squids 2"
         },
         "26": {
-            "key": "frc9335",
-            "team_number": 9335,
+            "key": "frc9993",
+            "team_number": 9993,
             "nickname": "Blitz 2"
         },
         "27": {
-            "key": "frc9334",
-            "team_number": 9334,
+            "key": "frc9992",
+            "team_number": 9992,
             "nickname": "Brute Force 2"
         },
         "28": {
-            "key": "frc9333",
-            "team_number": 9333,
+            "key": "frc9991",
+            "team_number": 9991,
             "nickname": "Cougars Gone Wired 2"
         },
         "29": {
-            "key": "frc9332",
-            "team_number": 9332,
+            "key": "frc9990",
+            "team_number": 9990,
             "nickname": "Jackson Hole RoboBroncs 2"
         },
         "30": {
@@ -52,8 +52,8 @@ let kcmtTeams: any = {
             "nickname": "Bearbotics 2"
         },
         "31": {
-            "key": "frc9331",
-            "team_number": 9331,
+            "key": "frc9989",
+            "team_number": 9989,
             "nickname": "Komodo 2"
         },
         "32": {
@@ -63,20 +63,15 @@ let kcmtTeams: any = {
         },
         "33": {
             "key": "frc9329",
-            "team_number": 9329,
+            "team_number": 9987,
             "nickname": "Something's Bruin 2"
         },
         "34": {
-            "key": "frc9330",
-            "team_number": 9330,
-            "nickname": "Hi Fives 2"
-        },
-        "35": {
             "key": "frc7737",
             "team_number": 7737,
             "nickname": "RaptorBotics"
         },
-        "36": {
+        "35": {
             "key": "frc8334",
             "team_number": 8334,
             "nickname": "Titan Robotics"
