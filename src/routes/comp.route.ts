@@ -3,6 +3,73 @@ import got from "got";
 import Competition2023 from "../models/Competition2023.model";
 import competition2023Model from "../models/Competition2023.model";
 
+
+let kcmtTeams: any = {
+    "teams": {
+        "22": {
+            "key": "frc1338",
+            "team_number": 1338,
+            "nickname": "Test",
+            "name": "Did this work instead"
+        },
+        "23": {
+            "key": "frc22",
+            "team_number": 22,
+            "nickname": "Double Deuce",
+            "name": "Double Deuce"
+        },
+        "24": {
+            "key": "frc22",
+            "team_number": 22,
+            "nickname": "Double Deuce",
+            "name": "Double Deuce"
+        },
+        "25": {
+            "key": "frc22",
+            "team_number": 22,
+            "nickname": "Double Deuce",
+            "name": "Double Deuce"
+        },
+        "26": {
+            "key": "frc22",
+            "team_number": 22,
+            "nickname": "Double Deuce",
+            "name": "Double Deuce"
+        },
+        "27": {
+            "key": "frc22",
+            "team_number": 22,
+            "nickname": "Double Deuce",
+            "name": "Double Deuce"
+        }
+
+
+
+    },
+    "template": {
+        "address": null,
+        "city": "",
+        "country": "",
+        "gmaps_place_id": null,
+        "gmaps_url": null,
+        "key": "frc0",
+        "lat": null,
+        "lng": null,
+        "location_name": null,
+        "motto": null,
+        "name": "Test Name",
+        "nickname": "Loading...",
+        "postal_code": "",
+        "rookie_year": 0,
+        "school_name": "",
+        "state_prov": "",
+        "team_number": 0,
+        "website": ""
+    }
+}
+
+
+
 const router = express.Router();
 const getFromTBA = async (url: string): Promise<any> => {
     return got("https://www.thebluealliance.com/api/v3/" + url, {
@@ -712,7 +779,7 @@ router.route("/event").post((req, res, next) => {
         .catch(next)
 });
 
-let kcmtTeams = require('./kcmtTeams.json');
+// let kcmtTeams = require('./kcmtTeams.json');
 kcmtTeams = kcmtTeams.teams;
 console.log(kcmtTeams);
 
