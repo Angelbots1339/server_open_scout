@@ -7,40 +7,79 @@ import competition2023Model from "../models/Competition2023.model";
 let kcmtTeams: any = {
     "teams": {
         "22": {
-            "key": "frc1338",
-            "team_number": 1338,
-            "nickname": "Test",
-            "name": "Did this work instead"
+            "key": "frc9339",
+            "team_number": 9339,
+            "nickname": "Anglebotics"
         },
         "23": {
-            "key": "frc22",
-            "team_number": 22,
-            "nickname": "Double Deuce",
-            "name": "Double Deuce"
+            "key": "frc9338",
+            "team_number": 9338,
+            "nickname": "The Kraken 2"
         },
         "24": {
-            "key": "frc22",
-            "team_number": 22,
-            "nickname": "Double Deuce",
-            "name": "Double Deuce"
+            "key": "frc9337",
+            "team_number": 9337,
+            "nickname": "Up A Creek 2"
         },
         "25": {
-            "key": "frc22",
-            "team_number": 22,
-            "nickname": "Double Deuce",
-            "name": "Double Deuce"
+            "key": "frc9336",
+            "team_number": 9336,
+            "nickname": "Power Squids 2"
         },
         "26": {
-            "key": "frc22",
-            "team_number": 22,
-            "nickname": "Double Deuce",
-            "name": "Double Deuce"
+            "key": "frc9335",
+            "team_number": 9335,
+            "nickname": "Blitz 2"
         },
         "27": {
-            "key": "frc22",
-            "team_number": 22,
-            "nickname": "Double Deuce",
-            "name": "Double Deuce"
+            "key": "frc9334",
+            "team_number": 9334,
+            "nickname": "Brute Force 2"
+        },
+        "28": {
+            "key": "frc9333",
+            "team_number": 9333,
+            "nickname": "Cougars Gone Wired 2"
+        },
+        "29": {
+            "key": "frc9332",
+            "team_number": 9332,
+            "nickname": "Jackson Hole RoboBroncs 2"
+        },
+        "30": {
+            "key": "frc9998",
+            "team_number": 9998,
+            "nickname": "Bearbotics 2"
+        },
+        "31": {
+            "key": "frc9331",
+            "team_number": 9331,
+            "nickname": "Komodo 2"
+        },
+        "32": {
+            "key": "frc9999",
+            "team_number": 9999,
+            "nickname": "Highlanders 2"
+        },
+        "33": {
+            "key": "frc9329",
+            "team_number": 9329,
+            "nickname": "Something's Bruin 2"
+        },
+        "34": {
+            "key": "frc9330",
+            "team_number": 9330,
+            "nickname": "Hi Fives 2"
+        },
+        "35": {
+            "key": "frc7737",
+            "team_number": 7737,
+            "nickname": "RaptorBotics"
+        },
+        "36": {
+            "key": "frc8334",
+            "team_number": 8334,
+            "nickname": "Titan Robotics"
         }
 
 
@@ -67,7 +106,6 @@ let kcmtTeams: any = {
         "website": ""
     }
 }
-
 
 
 const router = express.Router();
@@ -123,7 +161,7 @@ const countSubstation = (input: string, eq: string) => {
                                 "double"
                             ]
                         }
-                        ]
+                    ]
                 }
             }
         }
@@ -207,7 +245,7 @@ const autoSummery = {
     $concat: [
         {$toString: countAuto("hybrid")}, "|",
         {$toString: countAuto("mid")}, "|",
-        {$toString:countAuto("top")}, " ",
+        {$toString: countAuto("top")}, " ",
         {
             $cond:
                 {
@@ -329,7 +367,7 @@ const getContributedScoreFlat = {
             ]
         },
         scoreSummery: {
-            $concat: [{$toString:"$hybridCount"}, "|", {$toString:"$midCount"}, "|",{$toString:"$topCount"}]
+            $concat: [{$toString: "$hybridCount"}, "|", {$toString: "$midCount"}, "|", {$toString: "$topCount"}]
         }
     }
 }
@@ -495,7 +533,7 @@ const getAllMatches = (comp: string) => {
             $addFields: {
                 uid: {
                     $toInt: {
-                        $last: { $split: ["$match", "m"] }
+                        $last: {$split: ["$match", "m"]}
                     }
                 }
             }
@@ -633,13 +671,13 @@ router.route("/event/:event").get((req, res, next) => {
 router.route("/event/:event/matches/simple").get((req, res, next) => {
     getFromTBA("event/" + req.params.event + "/matches/simple").then((matches) => {
         res.send(matches);
-    console.log("2023/event/:event/matches/simple" + " Requested");
+        console.log("2023/event/:event/matches/simple" + " Requested");
     }).catch(next)
 })
 router.route("/event/:event/matches/keys").get((req, res, next) => {
     getFromTBA("event/" + req.params.event + "/matches/keys").then((matches) => {
         res.send(matches);
-    console.log("2023/event/:event/matches/keys" + " Requested");
+        console.log("2023/event/:event/matches/keys" + " Requested");
     }).catch(next)
 })
 router.route("/event/:event/matches/flat").get((req, res, next) => {
@@ -663,7 +701,6 @@ router.route("/event/:event/matches/flat").get((req, res, next) => {
                 numMatchesPlayed = rank.matches_played;
                 rank = rank.rank;
             }
-
 
 
             return {
@@ -794,9 +831,8 @@ router.route("/event/:event/tbaTeams").get((req, res, next) => {
 );
 router.route("/event/:event/team/:team/matches").get((req, res, next) => {
         // @ts-ignore
-    Competition2023.aggregate(getAllMatchesTeam(req.params.event, req.params.team)).then(
-            (matches) =>
-            {
+        Competition2023.aggregate(getAllMatchesTeam(req.params.event, req.params.team)).then(
+            (matches) => {
                 res.send(matches)
                 console.log("2023/event/:event/team/:team/matches" + " Requested");
             }
