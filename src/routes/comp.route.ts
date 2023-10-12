@@ -502,31 +502,36 @@ let kcmtTeams: any = {
             "nickname": "Highlanders 2"
         },
         "33": {
-            "key": "frc9329",
+            "key": "frc9987",
+            "team_number": 9988,
+            "nickname": "Hi Fives 2"
+        },
+        "34": {
+            "key": "frc9987",
             "team_number": 9987,
             "nickname": "Something's Bruin 2"
         },
-        "34": {
+        "35": {
             "key": "frc7737",
             "team_number": 7737,
             "nickname": "RaptorBotics"
         },
-        "35": {
+        "36": {
             "key": "frc8334",
             "team_number": 8334,
             "nickname": "Titan Robotics"
         },
-        "36": {
+        "37": {
             "key": "frc2945",
             "team_number": 2945,
             "nickname": "The Steel Mustangs"
         },
-        "37": {
+        "38": {
             "key": "frc4388",
             "team_number": 4388,
             "nickname": "Ridgebotics"
         },
-        "38": {
+        "39": {
             "key": "frc3648",
             "team_number": 3648,
             "nickname": "Sparta Robotica"
@@ -1267,13 +1272,13 @@ router.route("/event").post((req, res, next) => {
 
 // let kcmtTeams = require('./kcmtTeams.json');
 kcmtTeams = kcmtTeams.teams;
-console.log(kcmtTeams);
+// console.log(kcmtTeams);
 
 router.route("/event/:event/tbaTeams").get((req, res, next) => {
         Promise.all([getFromTBA("event/" + req.params['event'] + "/teams")]).then(([tbaEventTeams]) => {
             // @ts-ignore
             let finalTeams = {...tbaEventTeams, ...kcmtTeams};
-            res.send(kcmtTeams);
+            res.send({...tbaEventTeams});
             console.log("2023/event/:event/tbaTeams" + " Requested");
         }).catch(next);
     }
