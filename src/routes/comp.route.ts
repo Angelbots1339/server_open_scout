@@ -1135,7 +1135,7 @@ router.route("/event/:event/matches/keys").get((req, res, next) => {
     }).catch(next)
 })
 router.route("/event/:event/matches/flat").get((req, res, next) => {
-    Promise.all([competition2023Model.aggregate(getSummary(req.params.event)), getFromTBA("/event/" + req.params.event + "/teams"), getFromTBA("/event/" + req.params.event + "/oprs"), getFromTBA("/event/" + req.params.event + "/rankings"), getFromStatbotics("team_years/")]).then(([matches, tbaTeams, tbaOPR, tbaRankings, statboticsTeamsYears]) => {
+    Promise.all([competition2023Model.aggregate(getSummary(req.params.event)), getFromTBA("event/" + req.params['event'] + "/teams"), getFromTBA("/event/" + req.params.event + "/oprs"), getFromTBA("/event/" + req.params.event + "/rankings")]).then(([matches, tbaTeams, tbaOPR, tbaRankings]) => {
         let final = matches.map((match) => {
             let nickname = tbaTeams.find((team: any) => {
                 return team.key === match._id;
@@ -1151,7 +1151,7 @@ router.route("/event/:event/matches/flat").get((req, res, next) => {
             if (rank != undefined) {
                 // console.log(rank);
                 winLossRatio = rank.record.wins + " | " + rank.record.losses + " | " + rank.record.ties;
-                console.log(winLossRatio);
+                // console.log(winLossRatio);
                 numMatchesPlayed = rank.matches_played;
                 rank = rank.rank;
             }
